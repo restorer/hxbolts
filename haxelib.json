@@ -1,0 +1,10 @@
+{
+    "name": "hxbolts",
+    "url": "https://github.com/restorer/hxbolts",
+    "license": "BSD",
+    "tags": ["async", "asynchronous", "bolts", "cross", "promise"],
+    "description": "Pure Haxe port of java library named Bolts. Kind of like a JavaScript Promise, but with different API.",
+    "version": "1.0.0",
+    "releasenote": "Initial release.",
+    "contributors": ["restorer"]
+}

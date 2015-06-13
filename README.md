@@ -32,7 +32,7 @@ This object will let you create a new Task, and control whether it gets marked a
 After you create a `Task`, you'll need to call `setResult`, `setError`, or `setCancelled` to trigger its continuations.
 
 ```haxe
-function doSomethingAsyncTask(param : String) {
+function doSomethingAsyncTask(param : String) : Task<Int> {
     var tcs = new TaskCompletionSource<Int>();
 
     doSomethingAsync(param, function(result : Int) : Void {
@@ -47,11 +47,11 @@ function doSomethingAsyncTask(param : String) {
 }
 ```
 
-That's all :) Now you can chain tasks together and do all async stuff in easy manner.
+That's all :smiley: Now you can chain tasks together and do all async stuff in easy manner.
 
 Another example:
 
-```
+```haxe
 function loadTextFromUrlAsync(url : String) : Task<String> {
     var tcs = new TaskCompletionSource<String>();
     var urlLoader = new URLLoader();
@@ -88,7 +88,8 @@ You can then inspect the task to check if it was successful and to get its resul
 loadTextFromUrlAsync("http://domain.tld").continueWith(function(task : Task<String>) : Nothing {
     if (task.isCancelled) {
         // the load was cancelled.
-        // NB. loadTextFromUrlAsync() mentioned earlier is used just for illustration, actually it doesn't support cancelling.
+        // NB. loadTextFromUrlAsync() mentioned earlier is used just for illustration,
+        // actually it doesn't support cancelling.
     } else if (task.isFaulted) {
         // the load failed.
         var error : Dynamic = task.error;
@@ -198,7 +199,7 @@ var successful : Task<String> = Task.forResult("The good result.");
 ```
 
 ```haxe
-var failed : Task<String>= Task.forError("An error message.");
+var failed : Task<String> = Task.forError("An error message.");
 ```
 
 > There is also `call` function that help you create tasks from straight blocks of code.
@@ -217,7 +218,7 @@ findCommentsAsync({ post: 123 }).continueWithTask(function(resultTask : Task<Arr
 
     for (commentInfo in resultTask.result) {
         // For each item, extend the task with a function to delete the item.
-        task = task.continueWithTask(function(ignored : Task<Nothing>) : Task<Nothing> {
+        task = task.continueWithTask(function(_) : Task<Nothing> {
             // Return a task that will be marked as completed when the delete is finished.
             return deleteCommentAsync(commentInfo);
         });
