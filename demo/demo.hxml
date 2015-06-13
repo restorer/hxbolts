@@ -1,0 +1,4 @@
+-lib hxbolts
+-main org.sample.Demo
+-swf demo.swf
+-cmd open demo.swf
