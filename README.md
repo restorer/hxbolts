@@ -11,6 +11,20 @@ hxbolts is not a binding to the java library, but pure-haxe cross-platform port.
 Important note: original java library is about keeping long-running operations out of the UI thread,
 but current version of hxbolts is more about transforming async callback hell into nice looking code.
 
+## Installation
+
+Stable release:
+
+```
+haxelib install hxbolts
+```
+
+Development version:
+
+```
+haxelib git hxbolts https://github.com/restorer/hxbolts.git
+```
+
 # Tasks
 
 To use all power of hxbolts, at first we need to *boltify* some existing function with callbacks.
