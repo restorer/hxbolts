@@ -6,7 +6,7 @@
  *  LICENSE file in the root directory of this source tree.
  *
  */
-package hxbolts;
+package hxbolts.executors;
 
 class ImmediateTaskExecutor implements TaskExecutor {
     public function new() : Void {

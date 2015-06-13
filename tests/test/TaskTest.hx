@@ -17,6 +17,7 @@ package ;
 
 import hxbolts.Nothing;
 import hxbolts.Task;
+import hxbolts.TaskCompletionSource;
 import hxbolts.TaskCancellationException;
 import massive.munit.Assert;
 import massive.munit.async.AsyncFactory;
@@ -37,15 +38,18 @@ class TaskTest {
         Assert.areEqual(5, complete.result);
         Assert.isFalse(complete.isFaulted);
         Assert.isFalse(complete.isCancelled);
+        Assert.isTrue(complete.isSuccessed);
 
         Assert.isTrue(error.isCompleted);
         Assert.isType(error.error, TestException);
         Assert.isTrue(error.isFaulted);
         Assert.isFalse(error.isCancelled);
+        Assert.isFalse(error.isSuccessed);
 
         Assert.isTrue(cancelled.isCompleted);
         Assert.isFalse(cancelled.isFaulted);
         Assert.isTrue(cancelled.isCancelled);
+        Assert.isFalse(cancelled.isSuccessed);
     }
 
     @Test
@@ -54,34 +58,51 @@ class TaskTest {
         var error : Task<Int> = Task.forError(new TestException());
         var cancelled : Task<Int> = Task.cancelled();
 
+        var completeHandled : Bool = false;
+        var errorHandled : Bool = false;
+        var cancelledHandled : Bool = false;
+
         complete.continueWith(function(task : Task<Int>) : Nothing {
-            Assert.areEqual(complete, task);
+            Assert.areSame(complete, task);
+
             Assert.isTrue(task.isCompleted);
             Assert.areEqual(5, task.result);
             Assert.isFalse(task.isFaulted);
             Assert.isFalse(task.isCancelled);
+            Assert.isTrue(task.isSuccessed);
 
+            completeHandled = true;
             return null;
         });
 
         error.continueWith(function(task : Task<Int>) : Nothing {
-            Assert.areEqual(error, task);
+            Assert.areSame(error, task);
+
             Assert.isTrue(task.isCompleted);
             Assert.isType(task.error, TestException);
             Assert.isTrue(task.isFaulted);
             Assert.isFalse(task.isCancelled);
+            Assert.isFalse(task.isSuccessed);
 
+            errorHandled = true;
             return null;
         });
 
         cancelled.continueWith(function(task : Task<Int>) : Nothing {
-            Assert.areEqual(cancelled, task);
-            Assert.isTrue(cancelled.isCompleted);
-            Assert.isFalse(cancelled.isFaulted);
-            Assert.isTrue(cancelled.isCancelled);
+            Assert.areSame(cancelled, task);
 
+            Assert.isTrue(task.isCompleted);
+            Assert.isFalse(task.isFaulted);
+            Assert.isTrue(task.isCancelled);
+            Assert.isFalse(task.isSuccessed);
+
+            cancelledHandled = true;
             return null;
         });
+
+        Assert.isTrue(completeHandled);
+        Assert.isTrue(errorHandled);
+        Assert.isTrue(cancelledHandled);
     }
 
     @Test
@@ -131,12 +152,12 @@ class TaskTest {
 
     @AsyncTest
     public function testBackgroundCall(factory : AsyncFactory) : Void {
-        var timerExecutor = new TimerExecutor(100);
+        var timerExecutor = new TimerExecutor(10);
         var task : Task<Int> = null;
 
         var handler : Dynamic = factory.createHandler(this, function() : Void {
             Assert.areEqual(5, task.result);
-        }, 200);
+        }, 5000);
 
         Task.call(function() : Int {
             return 5;
@@ -149,13 +170,13 @@ class TaskTest {
 
     @AsyncTest
     public function testBackgroundError(factory : AsyncFactory) : Void {
-        var timerExecutor = new TimerExecutor(100);
+        var timerExecutor = new TimerExecutor(10);
         var task : Task<Int> = null;
 
         var handler : Dynamic = factory.createHandler(this, function() : Void {
             Assert.isTrue(task.isFaulted);
             Assert.isType(task.error, TestException);
-        }, 200);
+        }, 5000);
 
         Task.call(function() : Int {
             throw new TestException();
@@ -168,12 +189,12 @@ class TaskTest {
 
     @AsyncTest
     public function testBackgroundCancellation(factory : AsyncFactory) : Void {
-        var timerExecutor = new TimerExecutor(100);
+        var timerExecutor = new TimerExecutor(10);
         var task : Task<Int> = null;
 
         var handler : Dynamic = factory.createHandler(this, function() : Void {
             Assert.isTrue(task.isCancelled);
-        }, 200);
+        }, 5000);
 
         Task.call(function() : Int {
             throw new TaskCancellationException();
@@ -186,12 +207,12 @@ class TaskTest {
 
     @AsyncTest
     public function testContinueOnTimerExecutor(factory : AsyncFactory) : Void {
-        var timerExecutor = new TimerExecutor(100);
+        var timerExecutor = new TimerExecutor(10);
         var task : Task<Int> = null;
 
         var handler : Dynamic = factory.createHandler(this, function() : Void {
             Assert.areEqual(3, task.result);
-        }, 400);
+        }, 5000);
 
         Task.call(function() : Int {
             return 1;
@@ -213,6 +234,7 @@ class TaskTest {
         Assert.isTrue(task.isCompleted);
         Assert.isFalse(task.isFaulted);
         Assert.isFalse(task.isCancelled);
+        Assert.isTrue(task.isSuccessed);
     }
 
     @AsyncTest
@@ -232,12 +254,17 @@ class TaskTest {
             Assert.isTrue(task.isCompleted);
             Assert.isFalse(task.isFaulted);
             Assert.isFalse(task.isCancelled);
-            Assert.areEqual(firstToCompleteSuccess, task.result);
+            Assert.isTrue(task.isSuccessed);
+
+            Assert.areSame(firstToCompleteSuccess, task.result);
+
             Assert.isTrue(task.result.isCompleted);
             Assert.isFalse(task.result.isFaulted);
             Assert.isFalse(task.result.isCancelled);
+            Assert.isTrue(task.result.isSuccessed);
+
             Assert.areEqual(2000, task.result.result);
-        }, 300);
+        }, 5000);
 
         Task.whenAny(tasks).continueWith(function(t : Task<Task<Int>>) : Nothing {
             task = t;
@@ -263,12 +290,17 @@ class TaskTest {
             Assert.isTrue(task.isCompleted);
             Assert.isFalse(task.isFaulted);
             Assert.isFalse(task.isCancelled);
-            Assert.areEqual(firstToCompleteSuccess, task.result);
+            Assert.isTrue(task.isSuccessed);
+
+            Assert.areSame(firstToCompleteSuccess, task.result);
+
             Assert.isTrue(task.result.isCompleted);
             Assert.isFalse(task.result.isFaulted);
             Assert.isFalse(task.result.isCancelled);
+            Assert.isTrue(task.result.isSuccessed);
+
             Assert.areEqual("SUCCESS", task.result.result);
-        }, 300);
+        }, 5000);
 
         Task.whenAny(tasks).continueWith(function(t : Task<Task<Dynamic>>) : Nothing {
             task = t;
@@ -280,9 +312,8 @@ class TaskTest {
     @AsyncTest
     public function testWhenAnyFirstError(factory : AsyncFactory) : Void {
         var task : Task<Task<Dynamic>> = null;
-        var tasks = new Array<Task<Dynamic>>();
-
         var error = new TestException();
+        var tasks = new Array<Task<Dynamic>>();
 
         var firstToCompleteError = Task.call(function() : String {
             throw error;
@@ -296,12 +327,17 @@ class TaskTest {
             Assert.isTrue(task.isCompleted);
             Assert.isFalse(task.isFaulted);
             Assert.isFalse(task.isCancelled);
-            Assert.areEqual(firstToCompleteError, task.result);
+            Assert.isTrue(task.isSuccessed);
+
+            Assert.areSame(firstToCompleteError, task.result);
+
             Assert.isTrue(task.result.isCompleted);
             Assert.isTrue(task.result.isFaulted);
             Assert.isFalse(task.result.isCancelled);
-            Assert.areEqual(error, task.result.error);
-        }, 300);
+            Assert.isFalse(task.result.isSuccessed);
+
+            Assert.areSame(error, task.result.error);
+        }, 5000);
 
         Task.whenAny(tasks).continueWith(function(t : Task<Task<Dynamic>>) : Nothing {
             task = t;
@@ -327,11 +363,15 @@ class TaskTest {
             Assert.isTrue(task.isCompleted);
             Assert.isFalse(task.isFaulted);
             Assert.isFalse(task.isCancelled);
-            Assert.areEqual(firstToCompleteError, task.result);
+            Assert.isTrue(task.isSuccessed);
+
+            Assert.areSame(firstToCompleteError, task.result);
+
             Assert.isTrue(task.result.isCompleted);
             Assert.isFalse(task.result.isFaulted);
             Assert.isTrue(task.result.isCancelled);
-        }, 300);
+            Assert.isFalse(task.result.isSuccessed);
+        }, 5000);
 
         Task.whenAny(tasks).continueWith(function(t : Task<Task<Dynamic>>) : Nothing {
             task = t;
@@ -355,11 +395,12 @@ class TaskTest {
             Assert.isTrue(task.isCompleted);
             Assert.isFalse(task.isFaulted);
             Assert.isFalse(task.isCancelled);
+            Assert.isTrue(task.isSuccessed);
 
             for (t in tasks) {
                 Assert.isTrue(t.isCompleted);
             }
-        }, 100);
+        }, 5000);
 
         Task.whenAll(tasks).continueWith(function(t : Task<Nothing>) : Nothing {
             task = t;
@@ -368,16 +409,306 @@ class TaskTest {
         });
     }
 
-    // testWhenAllOneError
-    // testWhenAllTwoErrors
-    // testWhenAllCancel
-    // testWhenAllResultNoTasks
-    // testWhenAllResultSuccess
-    // testAsyncChaining
-    // testOnSuccess
-    // testOnSuccessTask
-    // testContinueWhile
-    // testContinueWhileAsync
+    @AsyncTest
+    public function testWhenAllOneError(factory : AsyncFactory) : Void {
+        var task : Task<Nothing> = null;
+        var error = new TestException();
+        var tasks = new Array<Task<Nothing>>();
+
+        for (i in 0 ... 20) {
+            tasks.push(Task.call(function() : Nothing {
+                if (i == 10) {
+                    throw error;
+                }
+
+                return null;
+            }, new TimerExecutor(randomInt(10, 50))));
+        }
+
+        var handler : Dynamic = factory.createHandler(this, function() : Void {
+            Assert.isTrue(task.isCompleted);
+            Assert.isTrue(task.isFaulted);
+            Assert.isFalse(task.isCancelled);
+            Assert.isFalse(task.isSuccessed);
+
+            Assert.isType(task.error, Array);
+            Assert.areEqual((cast task.error:Array<Dynamic>).length, 1);
+            Assert.areSame((cast task.error:Array<Dynamic>)[0], error);
+
+            for (t in tasks) {
+                Assert.isTrue(t.isCompleted);
+            }
+        }, 5000);
+
+        Task.whenAll(tasks).continueWith(function(t : Task<Nothing>) : Nothing {
+            task = t;
+            handler();
+            return null;
+        });
+    }
+
+    @AsyncTest
+    public function testWhenAllTwoErrors(factory : AsyncFactory) : Void {
+        var task : Task<Nothing> = null;
+        var error0 = new TestException();
+        var error1 = new TestException();
+        var tasks = new Array<Task<Nothing>>();
+
+        for (i in 0 ... 20) {
+            tasks.push(Task.call(function() : Nothing {
+                if (i == 10) {
+                    throw error0;
+                } else if (i == 11) {
+                    throw error1;
+                }
+
+                return null;
+            }, new TimerExecutor(10 + i * 10)));
+        }
+
+        var handler : Dynamic = factory.createHandler(this, function() : Void {
+            Assert.isTrue(task.isCompleted);
+            Assert.isTrue(task.isFaulted);
+            Assert.isFalse(task.isCancelled);
+            Assert.isFalse(task.isSuccessed);
+
+            Assert.isType(task.error, Array);
+            Assert.areEqual((cast task.error:Array<Dynamic>).length, 2);
+            Assert.areSame((cast task.error:Array<Dynamic>)[0], error0);
+            Assert.areSame((cast task.error:Array<Dynamic>)[1], error1);
+
+            for (t in tasks) {
+                Assert.isTrue(t.isCompleted);
+            }
+        }, 5000);
+
+        Task.whenAll(tasks).continueWith(function(t : Task<Nothing>) : Nothing {
+            task = t;
+            handler();
+            return null;
+        });
+    }
+
+    @AsyncTest
+    public function testWhenAllCancel(factory : AsyncFactory) : Void {
+        var task : Task<Nothing> = null;
+        var tasks = new Array<Task<Nothing>>();
+
+        for (i in 0 ... 20) {
+            var tcs = new TaskCompletionSource<Nothing>();
+
+            Task.call(function() : Nothing {
+                if (i == 10) {
+                    tcs.setCancelled();
+                } else {
+                    tcs.setResult(null);
+                }
+
+                return null;
+            }, new TimerExecutor(randomInt(10, 50)));
+
+            tasks.push(tcs.task);
+        }
+
+        var handler : Dynamic = factory.createHandler(this, function() : Void {
+            Assert.isTrue(task.isCompleted);
+            Assert.isFalse(task.isFaulted);
+            Assert.isTrue(task.isCancelled);
+            Assert.isFalse(task.isSuccessed);
+
+            for (t in tasks) {
+                Assert.isTrue(t.isCompleted);
+            }
+        }, 5000);
+
+        Task.whenAll(tasks).continueWith(function(t : Task<Nothing>) : Nothing {
+            task = t;
+            handler();
+            return null;
+        });
+    }
+
+    @Test
+    public function testWhenAllResultNoTasks() : Void {
+        var task : Task<Array<Nothing>> = Task.whenAllResult(new Array<Task<Nothing>>());
+
+        Assert.isTrue(task.isCompleted);
+        Assert.isFalse(task.isFaulted);
+        Assert.isFalse(task.isCancelled);
+        Assert.isTrue(task.isSuccessed);
+
+        Assert.areEqual(task.result.length, 0);
+    }
+
+    @AsyncTest
+    public function testWhenAllResultSuccess(factory : AsyncFactory) : Void {
+        var task : Task<Array<Int>> = null;
+        var tasks = new Array<Task<Int>>();
+
+        for (i in 0 ... 20) {
+            tasks.push(Task.call(function() : Int {
+                return (i + 1);
+            }, new TimerExecutor(randomInt(10, 50))));
+        }
+
+        var handler : Dynamic = factory.createHandler(this, function() : Void {
+            Assert.isTrue(task.isCompleted);
+            Assert.isFalse(task.isFaulted);
+            Assert.isFalse(task.isCancelled);
+            Assert.isTrue(task.isSuccessed);
+
+            Assert.areEqual(tasks.length, task.result.length);
+
+            for (i in 0 ... tasks.length) {
+                var t = tasks[i];
+                Assert.isTrue(t.isCompleted);
+                Assert.areEqual(t.result, task.result[i]);
+            }
+        }, 5000);
+
+        Task.whenAllResult(tasks).continueWith(function(t : Task<Array<Int>>) : Nothing {
+            task = t;
+            handler();
+            return null;
+        });
+    }
+
+    @AsyncTest
+    public function testAsyncChaining(factory : AsyncFactory) : Void {
+        var task : Task<Nothing> = null;
+        var tasks = new Array<Task<Int>>();
+
+        var sequence = new Array<Int>();
+        var result : Task<Nothing> = Task.forResult(null);
+
+        for (i in 0 ... 20) {
+            result = result.continueWithTask(function(task : Task<Nothing>) : Task<Nothing> {
+                return Task.call(function() : Nothing {
+                    sequence.push(i);
+                    return null;
+                }, new TimerExecutor(randomInt(10, 50)));
+            });
+        }
+
+        var handler : Dynamic = factory.createHandler(this, function() : Void {
+            Assert.areEqual(20, sequence.length);
+
+            for (i in 0 ... 20) {
+                Assert.areEqual(i, sequence[i]);
+            }
+        }, 5000);
+
+        result.continueWith(function(t : Task<Nothing>) : Nothing {
+            task = t;
+            handler();
+            return null;
+        });
+    }
+
+    @Test
+    public function testOnSuccess() : Void {
+        var continuation = function(task : Task<Int>) : Int {
+            return task.result + 1;
+        };
+
+        var complete : Task<Int> = Task.forResult(5).onSuccess(continuation);
+        var error : Task<Int> = Task.forError(new TestException()).onSuccess(continuation);
+        var cancelled : Task<Int> = Task.cancelled().onSuccess(continuation);
+
+        Assert.isTrue(complete.isCompleted);
+        Assert.areEqual(6, complete.result);
+        Assert.isFalse(complete.isFaulted);
+        Assert.isFalse(complete.isCancelled);
+        Assert.isTrue(complete.isSuccessed);
+
+        Assert.isTrue(error.isCompleted);
+        Assert.isType(error.error, TestException);
+        Assert.isTrue(error.isFaulted);
+        Assert.isFalse(error.isCancelled);
+        Assert.isFalse(error.isSuccessed);
+
+        Assert.isTrue(cancelled.isCompleted);
+        Assert.isFalse(cancelled.isFaulted);
+        Assert.isTrue(cancelled.isCancelled);
+        Assert.isFalse(cancelled.isSuccessed);
+    }
+
+    @Test
+    public function testOnSuccessTask() : Void {
+        var continuation = function(task : Task<Int>) : Task<Int> {
+            return Task.forResult(task.result + 1);
+        };
+
+        var complete : Task<Int> = Task.forResult(5).onSuccessTask(continuation);
+        var error : Task<Int> = Task.forError(new TestException()).onSuccessTask(continuation);
+        var cancelled : Task<Int> = Task.cancelled().onSuccessTask(continuation);
+
+        Assert.isTrue(complete.isCompleted);
+        Assert.areEqual(6, complete.result);
+        Assert.isFalse(complete.isFaulted);
+        Assert.isFalse(complete.isCancelled);
+        Assert.isTrue(complete.isSuccessed);
+
+        Assert.isTrue(error.isCompleted);
+        Assert.isType(error.error, TestException);
+        Assert.isTrue(error.isFaulted);
+        Assert.isFalse(error.isCancelled);
+        Assert.isFalse(error.isSuccessed);
+
+        Assert.isTrue(cancelled.isCompleted);
+        Assert.isFalse(cancelled.isFaulted);
+        Assert.isTrue(cancelled.isCancelled);
+        Assert.isFalse(cancelled.isSuccessed);
+    }
+
+    @Test
+    public function testContinueWhile() : Void {
+        var count : Int = 0;
+        var handled : Bool = false;
+
+        Task.forResult(null).continueWhile(function() : Bool {
+            return (count < 10);
+        }, function(task : Task<Nothing>) : Task<Nothing> {
+            count++;
+            return null;
+        }).continueWith(function(task : Task<Nothing>) : Nothing {
+            Assert.areEqual(10, count);
+            handled = true;
+            return null;
+        });
+
+        Assert.isTrue(handled);
+    }
+
+    @AsyncTest
+    public function testContinueWhileAsync(factory : AsyncFactory) : Void {
+        var count : Int = 0;
+
+        var handler : Dynamic = factory.createHandler(this, function() : Void {
+            Assert.areEqual(10, count);
+        }, 15000);
+
+        Task.forResult(null).continueWhile(function() : Bool {
+            return (count < 10);
+        }, function(task : Task<Nothing>) : Task<Nothing> {
+            count++;
+            return null;
+        }, new TimerExecutor(10)).continueWith(function(task : Task<Nothing>) : Nothing {
+            handler();
+            return null;
+        });
+    }
+
+    @Test
+    public function testNullError() : Void {
+        var error : Task<Int> = Task.forError(null);
+
+        Assert.isTrue(error.isCompleted);
+        Assert.areSame(error.error, null);
+        Assert.isTrue(error.isFaulted);
+        Assert.isFalse(error.isCancelled);
+        Assert.isFalse(error.isSuccessed);
+    }
 
     private function addTasksWithRandomCompletions(
         tasks : Array<Task<Dynamic>>,

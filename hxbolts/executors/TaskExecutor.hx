@@ -6,7 +6,7 @@
  *  LICENSE file in the root directory of this source tree.
  *
  */
-package hxbolts;
+package hxbolts.executors;
 
 interface TaskExecutor {
     public function execute(runnable : Void -> Void) : Void;

@@ -8,7 +8,7 @@
  */
 package util;
 
-import hxbolts.TaskExecutor;
+import hxbolts.executors.TaskExecutor;
 import massive.munit.util.Timer;
 
 class TimerExecutor implements TaskExecutor {

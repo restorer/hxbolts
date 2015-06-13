@@ -23,50 +23,87 @@ class TaskCompletionSource<TResult> {
         this.task = new Task<TResult>();
     }
 
-    public function trySetResult(result : TResult) : Bool {
-        if (task.isCompleted) {
+    public function trySetResult(value : TResult) : Bool {
+        #if (cpp || neko || java)
+            task.mutex.acquire();
+        #end
+
+        if (task._isCompleted) {
+            #if (cpp || neko || java)
+                task.mutex.release();
+            #end
+
             return false;
         }
 
-        task.isCompleted = true;
-        task.result = result;
+        task._isCompleted = true;
+        task._result = value;
         task.runContinuations();
+
+        #if (cpp || neko || java)
+            task.mutex.release();
+        #end
 
         return true;
     }
 
-    public function trySetError(e : Dynamic) : Bool {
-        if (task.isCompleted) {
+    public function trySetError(value : Dynamic = null) : Bool {
+        #if (cpp || neko || java)
+            task.mutex.acquire();
+        #end
+
+        if (task._isCompleted) {
+            #if (cpp || neko || java)
+                task.mutex.release();
+            #end
+
             return false;
         }
 
-        task.isCompleted = true;
-        task.error = e;
+        task._isCompleted = true;
+        task._isFaulted = true;
+        task._error = value;
         task.runContinuations();
+
+        #if (cpp || neko || java)
+            task.mutex.release();
+        #end
 
         return true;
     }
 
     public function trySetCancelled() : Bool {
-        if (task.isCompleted) {
+        #if (cpp || neko || java)
+            task.mutex.acquire();
+        #end
+
+        if (task._isCompleted) {
+            #if (cpp || neko || java)
+                task.mutex.release();
+            #end
+
             return false;
         }
 
-        task.isCompleted = true;
-        task.isCancelled = true;
+        task._isCompleted = true;
+        task._isCancelled = true;
         task.runContinuations();
+
+        #if (cpp || neko || java)
+            task.mutex.release();
+        #end
 
         return true;
     }
 
-    public function setResult(result : TResult) : Void {
-        if (!trySetResult(result)) {
+    public function setResult(value : TResult) : Void {
+        if (!trySetResult(value)) {
             throw new IllegalTaskStateException("Cannot set the result of a completed task.");
         }
     }
 
-    public function setError(e : Dynamic) : Void {
-        if (!trySetError(e)) {
+    public function setError(value : Dynamic = null) : Void {
+        if (!trySetError(value)) {
             throw new IllegalTaskStateException("Cannot set the error on a completed task.");
         }
     }
