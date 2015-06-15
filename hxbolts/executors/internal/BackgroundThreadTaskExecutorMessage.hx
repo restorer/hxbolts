@@ -6,9 +6,10 @@
  *  LICENSE file in the root directory of this source tree.
  *
  */
-package hxbolts.executors;
+package hxbolts.executors.internal;
 
-interface TaskExecutor {
-    public function execute(runnable : Void -> Void) : Void;
-    public function shutdown() : Void;
+enum BackgroundThreadTaskExecutorMessage {
+    SetWorker(worker : BackgroundThreadTaskExecutorWorker);
+    Execute(runnable : Void -> Void);
+    Shutdown;
 }

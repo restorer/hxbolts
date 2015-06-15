@@ -21,4 +21,7 @@ class TimerExecutor implements TaskExecutor {
     public function execute(runnable : Void -> Void) : Void {
         Timer.delay(runnable, delay);
     }
+
+    public function shutdown() : Void {
+    }
 }

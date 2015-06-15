@@ -15,4 +15,7 @@ class ImmediateTaskExecutor implements TaskExecutor {
     public function execute(runnable : Void -> Void) : Void {
         runnable();
     }
+
+    public function shutdown() : Void {
+    }
 }
