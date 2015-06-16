@@ -32,13 +32,10 @@ class BackgroundThreadTaskExecutor implements TaskExecutor {
         }
 
         for (i in 0 ... poolSize) {
-            var worker : BackgroundThreadTaskExecutorWorker = {
-                thread: Thread.create(workerLoop),
+            workerPool.push({
+                thread: null,
                 loadFactor: 0,
-            };
-
-            worker.thread.sendMessage(BackgroundThreadTaskExecutorMessage.SetWorker(worker));
-            workerPool.push(worker);
+            });
         }
     }
 
@@ -52,12 +49,25 @@ class BackgroundThreadTaskExecutor implements TaskExecutor {
                 case SetWorker(_worker):
                     worker = _worker;
 
-                case Execute(runnable):
+                case Execute(runnable): {
                     runnable();
+
+                    var shouldShutdown = false;
 
                     mutex.acquire();
                     worker.loadFactor--;
+
+                    if (worker.loadFactor <= 0) {
+                        shouldShutdown = true;
+                        worker.thread = null;
+                    }
+
                     mutex.release();
+
+                    if (shouldShutdown) {
+                        break;
+                    }
+                }
 
                 case Shutdown:
                     break;
@@ -79,14 +89,21 @@ class BackgroundThreadTaskExecutor implements TaskExecutor {
         }
 
         selectedWorker.loadFactor++;
-        mutex.release();
+
+        if (selectedWorker.thread == null) {
+            selectedWorker.thread = Thread.create(workerLoop);
+            selectedWorker.thread.sendMessage(BackgroundThreadTaskExecutorMessage.SetWorker(selectedWorker));
+        }
 
         selectedWorker.thread.sendMessage(BackgroundThreadTaskExecutorMessage.Execute(runnable));
+        mutex.release();
     }
 
     public function shutdown() : Void {
         for (worker in workerPool) {
-            worker.thread.sendMessage(BackgroundThreadTaskExecutorMessage.Shutdown);
+            if (worker.thread != null) {
+                worker.thread.sendMessage(BackgroundThreadTaskExecutorMessage.Shutdown);
+            }
         }
     }
 }
