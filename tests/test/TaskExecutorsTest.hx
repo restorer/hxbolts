@@ -43,33 +43,33 @@ class TaskExecutorsTest {
         var initialThread = Thread.current();
         var currentThreadTaskExecutor = new CurrentThreadTaskExecutor();
 
-        var isTaskExecuted : Bool = false;
-        var isTaskOnInitialThread : Bool = false;
-        var isAfterTaskExecuted : Bool = false;
-        var isContinuedOnInitialThread : Bool = false;
-        var handled : Bool = false;
+        var immediateExecuted : Bool = false;
+        var stopLooper : Bool = false;
+        var task1Executed : Bool = false;
+        var task1ThreadOk : Bool = false;
+        var task2ThreadOk : Bool = false;
 
         var handler : Dynamic = factory.createHandler(this, function() : Void {
-            Assert.isTrue(isTaskExecuted);
-            Assert.isTrue(isTaskOnInitialThread);
-            Assert.isTrue(isAfterTaskExecuted);
-            Assert.isTrue(isContinuedOnInitialThread);
+            Assert.isTrue(immediateExecuted);
+            Assert.isTrue(task1Executed);
+            Assert.isTrue(task1ThreadOk);
+            Assert.isTrue(task2ThreadOk);
         }, 5000);
 
         Task.call(function() : Nothing {
             Sys.sleep(0.1);
 
             mutex.acquire();
-            isTaskExecuted = true;
-            isTaskOnInitialThread = isThisThread(initialThread);
+            task1Executed = true;
+            task1ThreadOk = (Thread.current() == initialThread);
             mutex.release();
 
             return null;
         }, currentThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
-            isContinuedOnInitialThread = isThisThread(initialThread);
+            task2ThreadOk = (Thread.current() == initialThread);
 
             mutex.acquire();
-            handled = true;
+            stopLooper = true;
             mutex.release();
 
             handler();
@@ -78,8 +78,8 @@ class TaskExecutorsTest {
 
         mutex.acquire();
 
-        if (!isTaskExecuted) {
-            isAfterTaskExecuted = true;
+        if (!task1Executed) {
+            immediateExecuted = true;
         }
 
         mutex.release();
@@ -89,10 +89,10 @@ class TaskExecutorsTest {
             currentThreadTaskExecutor.tick();
 
             mutex.acquire();
-            var wasHandled = handled;
+            var shouldStopLooper = stopLooper;
             mutex.release();
 
-            if (wasHandled) {
+            if (shouldStopLooper) {
                 break;
             }
 
@@ -106,16 +106,16 @@ class TaskExecutorsTest {
         var initialThread = Thread.current();
         var backgroundThreadTaskExecutor = new BackgroundThreadTaskExecutor(1);
 
-        var isTaskExecuted : Bool = false;
-        var isTaskNotOnInitialThread : Bool = false;
-        var isAfterTaskExecuted : Bool = false;
-        var isContinuedNotOnInitialThread : Bool = false;
+        var immediateExecuted : Bool = false;
+        var task1Executed : Bool = false;
+        var task1ThreadOk : Bool = false;
+        var task2ThreadOk : Bool = false;
 
         var handler : Dynamic = factory.createHandler(this, function() : Void {
-            Assert.isTrue(isTaskExecuted);
-            Assert.isTrue(isTaskNotOnInitialThread);
-            Assert.isTrue(isAfterTaskExecuted);
-            Assert.isTrue(isContinuedNotOnInitialThread);
+            Assert.isTrue(immediateExecuted);
+            Assert.isTrue(task1Executed);
+            Assert.isTrue(task1ThreadOk);
+            Assert.isTrue(task2ThreadOk);
 
             backgroundThreadTaskExecutor.shutdown();
         }, 5000);
@@ -124,21 +124,21 @@ class TaskExecutorsTest {
             Sys.sleep(0.1);
 
             mutex.acquire();
-            isTaskExecuted = true;
-            isTaskNotOnInitialThread = !isThisThread(initialThread);
+            task1Executed = true;
+            task1ThreadOk = (Thread.current() != initialThread);
             mutex.release();
 
             return null;
         }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
-            isContinuedNotOnInitialThread = !isThisThread(initialThread);
+            task2ThreadOk = (Thread.current() != initialThread);
             handler();
             return null;
         });
 
         mutex.acquire();
 
-        if (!isTaskExecuted) {
-            isAfterTaskExecuted = true;
+        if (!task1Executed) {
+            immediateExecuted = true;
         }
 
         mutex.release();
@@ -151,19 +151,21 @@ class TaskExecutorsTest {
         var currentThreadTaskExecutor = new CurrentThreadTaskExecutor();
         var backgroundThreadTaskExecutor = new BackgroundThreadTaskExecutor(1);
 
-        var notOnInitialThread1 : Bool = false;
-        var onInitialThread2 : Bool = false;
-        var notOnInitialThread3 : Bool = false;
-        var onInitialThread4 : Bool = false;
-        var isAfterTaskExecuted : Bool = false;
-        var handled : Bool = false;
+        var immediateExecuted : Bool = false;
+        var stopLooper : Bool = false;
+        var task1Executed : Bool = false;
+        var task1ThreadOk : Bool = false;
+        var task2ThreadOk : Bool = false;
+        var task3ThreadOk : Bool = false;
+        var task4ThreadOk : Bool = false;
 
         var handler : Dynamic = factory.createHandler(this, function() : Void {
-            Assert.isTrue(notOnInitialThread1);
-            Assert.isTrue(onInitialThread2);
-            Assert.isTrue(notOnInitialThread3);
-            Assert.isTrue(onInitialThread4);
-            Assert.isTrue(isAfterTaskExecuted);
+            Assert.isTrue(immediateExecuted);
+            Assert.isTrue(task1Executed);
+            Assert.isTrue(task1ThreadOk);
+            Assert.isTrue(task2ThreadOk);
+            Assert.isTrue(task3ThreadOk);
+            Assert.isTrue(task4ThreadOk);
 
             backgroundThreadTaskExecutor.shutdown();
         }, 5000);
@@ -172,7 +174,8 @@ class TaskExecutorsTest {
             Sys.sleep(0.1);
 
             mutex.acquire();
-            notOnInitialThread1 = !isThisThread(initialThread);
+            task1Executed = true;
+            task1ThreadOk = (Thread.current() != initialThread);
             mutex.release();
 
             return null;
@@ -180,7 +183,7 @@ class TaskExecutorsTest {
             Sys.sleep(0.1);
 
             mutex.acquire();
-            onInitialThread2 = isThisThread(initialThread);
+            task2ThreadOk = (Thread.current() == initialThread);
             mutex.release();
 
             return null;
@@ -188,7 +191,7 @@ class TaskExecutorsTest {
             Sys.sleep(0.1);
 
             mutex.acquire();
-            notOnInitialThread3 = !isThisThread(initialThread);
+            task3ThreadOk = (Thread.current() != initialThread);
             mutex.release();
 
             return null;
@@ -196,8 +199,8 @@ class TaskExecutorsTest {
             Sys.sleep(0.1);
 
             mutex.acquire();
-            onInitialThread4 = isThisThread(initialThread);
-            handled = true;
+            task4ThreadOk = (Thread.current() == initialThread);
+            stopLooper = true;
             mutex.release();
 
             handler();
@@ -206,8 +209,8 @@ class TaskExecutorsTest {
 
         mutex.acquire();
 
-        if (!notOnInitialThread1 && !onInitialThread2 && !notOnInitialThread3 && !onInitialThread4) {
-            isAfterTaskExecuted = true;
+        if (!task1Executed) {
+            immediateExecuted = true;
         }
 
         mutex.release();
@@ -217,42 +220,15 @@ class TaskExecutorsTest {
             currentThreadTaskExecutor.tick();
 
             mutex.acquire();
-            var wasHandled = handled;
+            var shouldStopLooper = stopLooper;
             mutex.release();
 
-            if (wasHandled) {
+            if (shouldStopLooper) {
                 break;
             }
 
             Sys.sleep(0.1);
         }
-    }
-
-    private function isThisThread(thread : Thread) : Bool {
-        var messages = new List<Dynamic>();
-
-        while (true) {
-            var msg : Dynamic = Thread.readMessage(false);
-
-            if (msg == null) {
-                break;
-            }
-
-            if (msg != "THIS_THREAD") {
-                messages.push(msg);
-            }
-        }
-
-        thread.sendMessage("THIS_THREAD");
-        var ret = (Thread.readMessage(false) == "THIS_THREAD");
-
-        var currentThread = Thread.current();
-
-        for (msg in messages) {
-            currentThread.sendMessage(msg);
-        }
-
-        return ret;
     }
 
     #end
