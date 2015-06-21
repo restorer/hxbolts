@@ -18,10 +18,30 @@ package hxbolts;
 
 class TaskExt {
     #if (flash || nme || openfl || lime)
-        public static var UI_EXECUTOR(default, null) = new UiThreadTaskExecutor();
+        private static var _UI_EXECUTOR : UiThreadTaskExecutor = null;
+        public static var UI_EXECUTOR(get, null) : UiThreadTaskExecutor;
+
+        @:noCompletion
+        private static function get_UI_EXECUTOR() : UiThreadTaskExecutor {
+            if (_UI_EXECUTOR == null) {
+                _UI_EXECUTOR = new UiThreadTaskExecutor();
+            }
+
+            return _UI_EXECUTOR;
+        }
     #end
 
     #if (cpp || neko || java)
-        public static var BACKGROUND_EXECUTOR(default, null) = new BackgroundThreadTaskExecutor(8);
+        private static var _BACKGROUND_EXECUTOR : BackgroundThreadTaskExecutor = null;
+        public static var BACKGROUND_EXECUTOR(get, null) : BackgroundThreadTaskExecutor;
+
+        @:noCompletion
+        private static function get_BACKGROUND_EXECUTOR() : BackgroundThreadTaskExecutor {
+            if (_BACKGROUND_EXECUTOR == null) {
+                _BACKGROUND_EXECUTOR = new BackgroundThreadTaskExecutor(8);
+            }
+
+            return _BACKGROUND_EXECUTOR;
+        }
     #end
 }
