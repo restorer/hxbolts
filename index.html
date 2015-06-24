@@ -131,7 +131,7 @@ makeRequestTask(<span class="pl-s"><span class="pl-pds">"</span>http://blog.tld/
     }
 
     <span class="pl-k">return</span> <span class="pl-c1">Task.</span>whenAllResult(tasks);
-}).onSuccessTask(<span class="pl-k">function</span>(task : <span class="pl-c1">Task</span><span class="pl-k">&lt;</span><span class="pl-c1">Array</span><span class="pl-k">&lt;</span><span class="pl-c1">String</span><span class="pl-k">&gt;&gt;</span>) : <span class="pl-c1">Task</span><span class="pl-k">&lt;</span><span class="pl-c1">Nothing</span><span class="pl-k">&gt;</span> {
+}).onSuccessTask(<span class="pl-k">function</span>(task : <span class="pl-c1">Task</span><span class="pl-k">&lt;</span><span class="pl-c1">Array</span><span class="pl-k">&lt;</span><span class="pl-c1">String</span><span class="pl-k">&gt;&gt;</span>) : <span class="pl-c1">Task</span><span class="pl-k">&lt;</span><span class="pl-c1">Void</span><span class="pl-k">&gt;</span> {
     <span class="pl-k">var</span> tasks <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-c1">Array</span><span class="pl-k">&lt;</span><span class="pl-c1">Task</span><span class="pl-k">&lt;</span><span class="pl-c1">String</span><span class="pl-k">&gt;&gt;</span>();
 
     <span class="pl-k">for</span> (response in task.result) {
@@ -141,14 +141,12 @@ makeRequestTask(<span class="pl-s"><span class="pl-pds">"</span>http://blog.tld/
     }
 
     <span class="pl-k">return</span> <span class="pl-c1">Task.</span>whenAll(tasks);
-}).continueWith(<span class="pl-k">function</span>(task : <span class="pl-c1">Task</span><span class="pl-k">&lt;</span><span class="pl-c1">Nothing</span><span class="pl-k">&gt;</span>) : <span class="pl-c1">Nothing</span> {
+}).continueWith(<span class="pl-k">function</span>(task : <span class="pl-c1">Task</span><span class="pl-k">&lt;</span><span class="pl-c1">Void</span><span class="pl-k">&gt;</span>) : <span class="pl-c1">Void</span> {
     <span class="pl-k">if</span> (task.isSuccessed) {
         <span class="pl-k">trace</span>(<span class="pl-s"><span class="pl-pds">"</span>Everything is good<span class="pl-pds">"</span></span>);
     } <span class="pl-k">else</span> {
         <span class="pl-k">trace</span>(<span class="pl-s"><span class="pl-pds">"</span>Error occurred : <span class="pl-pds">"</span></span> <span class="pl-k">+</span> <span class="pl-c1">Std.</span>string(task.error));
     }
-
-    <span class="pl-k">return</span> <span class="pl-c1">null</span>;
 });</pre></div>
 
 <p>Code is linear, easy to understand. It even doesn’t contains try / catch blocks, because hxbolts will take care about exceptions.</p>
