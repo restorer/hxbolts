@@ -1,6 +1,5 @@
 package org.sample;
 
-import hxbolts.Nothing;
 import hxbolts.Task;
 import hxbolts.TaskExt;
 import motion.Actuate;
@@ -143,7 +142,7 @@ class App extends Sprite {
             }
 
             return number;
-        } #if !no_background_thread , TaskExt.BACKGROUND_EXECUTOR #end).continueWith(function(task : Task<Int>) : Nothing {
+        } #if !no_background_thread , TaskExt.BACKGROUND_EXECUTOR #end).continueWith(function(task : Task<Int>) : Void {
             if (Thread.current() != uiThread) {
                 trace("ERROR: Non-UI thread at continueWith()");
             }
@@ -153,8 +152,6 @@ class App extends Sprite {
 
             updateTextFields();
             TaskExt.UI_EXECUTOR.execute(computeNextPrime);
-
-            return null;
         }, TaskExt.UI_EXECUTOR);
     }
 }

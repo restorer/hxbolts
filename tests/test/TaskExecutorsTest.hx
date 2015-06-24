@@ -9,7 +9,6 @@
 package ;
 
 import haxe.Timer;
-import hxbolts.Nothing;
 import hxbolts.Task;
 import massive.munit.Assert;
 import massive.munit.async.AsyncFactory;
@@ -56,16 +55,14 @@ class TaskExecutorsTest {
             Assert.isTrue(task2ThreadOk);
         }, 5000);
 
-        Task.call(function() : Nothing {
+        Task.call(function() : Void {
             Sys.sleep(0.1);
 
             mutex.acquire();
             task1Executed = true;
             task1ThreadOk = (Thread.current() == initialThread);
             mutex.release();
-
-            return null;
-        }, currentThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
+        }, currentThreadTaskExecutor).continueWith(function(t : Task<Void>) : Void {
             task2ThreadOk = (Thread.current() == initialThread);
 
             mutex.acquire();
@@ -73,7 +70,6 @@ class TaskExecutorsTest {
             mutex.release();
 
             handler();
-            return null;
         });
 
         mutex.acquire();
@@ -120,19 +116,16 @@ class TaskExecutorsTest {
             backgroundThreadTaskExecutor.shutdown();
         }, 5000);
 
-        Task.call(function() : Nothing {
+        Task.call(function() : Void {
             Sys.sleep(0.1);
 
             mutex.acquire();
             task1Executed = true;
             task1ThreadOk = (Thread.current() != initialThread);
             mutex.release();
-
-            return null;
-        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
+        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Void>) : Void {
             task2ThreadOk = (Thread.current() != initialThread);
             handler();
-            return null;
         });
 
         mutex.acquire();
@@ -170,32 +163,26 @@ class TaskExecutorsTest {
             backgroundThreadTaskExecutor.shutdown();
         }, 5000);
 
-        Task.call(function() : Nothing {
+        Task.call(function() : Void {
             Sys.sleep(0.1);
 
             mutex.acquire();
             task1Executed = true;
             task1ThreadOk = (Thread.current() != initialThread);
             mutex.release();
-
-            return null;
-        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
+        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Void>) : Void {
             Sys.sleep(0.1);
 
             mutex.acquire();
             task2ThreadOk = (Thread.current() == initialThread);
             mutex.release();
-
-            return null;
-        }, currentThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
+        }, currentThreadTaskExecutor).continueWith(function(t : Task<Void>) : Void {
             Sys.sleep(0.1);
 
             mutex.acquire();
             task3ThreadOk = (Thread.current() != initialThread);
             mutex.release();
-
-            return null;
-        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
+        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Void>) : Void {
             Sys.sleep(0.1);
 
             mutex.acquire();
@@ -204,7 +191,6 @@ class TaskExecutorsTest {
             mutex.release();
 
             handler();
-            return null;
         }, currentThreadTaskExecutor);
 
         mutex.acquire();
