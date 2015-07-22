@@ -4,7 +4,7 @@
     "license": "BSD",
     "tags": ["async", "asynchronous", "bolts", "cross", "promise"],
     "description": "Deal with async tasks like a boss. Pure Haxe port of java library named Bolts.",
-    "version": "1.0.0",
-    "releasenote": "Initial release.",
+    "version": "1.0.1",
+    "releasenote": "Multi-threading support.",
     "contributors": ["restorer"]
 }
