@@ -306,7 +306,7 @@ class Task<TResult> {
         }
 
         var tcs = new TaskCompletionSource<TResult>();
-		trace(callable);
+
         executor.execute(function() : Void {
             try {
                 tcs.setResult(callable());
