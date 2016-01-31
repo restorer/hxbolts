@@ -8,7 +8,7 @@
  */
 package hxbolts.executors;
 
-#if (flash || nme || openfl)
+#if (flash && (nme || openfl))
     import openfl.Lib;
     import openfl.events.Event;
 #elseif lime
@@ -25,7 +25,7 @@ class UiThreadTaskExecutor extends CurrentThreadTaskExecutor {
     public function new() : Void {
         super();
 
-        #if (flash || nme || openfl)
+        #if (flash && (nme || openfl))
             Lib.current.stage.addEventListener(Event.ENTER_FRAME, onNextFrame);
         #elseif lime
             Application.current.onUpdate.add(onNextFrame);
@@ -40,7 +40,7 @@ class UiThreadTaskExecutor extends CurrentThreadTaskExecutor {
     }
 
     override public function shutdown() : Void {
-        #if (flash || nme || openfl)
+        #if (flash && (nme || openfl))
             Lib.current.stage.removeEventListener(Event.ENTER_FRAME, onNextFrame);
         #elseif lime
             Application.current.onUpdate.remove(onNextFrame);
