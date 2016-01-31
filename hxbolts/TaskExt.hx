@@ -8,6 +8,9 @@
  */
 package hxbolts;
 
+import hxbolts.executors.ImmediateTaskExecutor;
+import hxbolts.executors.TaskExecutor;
+
 #if (flash || nme || openfl || lime)
     import hxbolts.executors.UiThreadTaskExecutor;
 #end
@@ -17,6 +20,8 @@ package hxbolts;
 #end
 
 class TaskExt {
+	public static var IMMEDIATE_EXECUTOR(default, null) : TaskExecutor = new ImmediateTaskExecutor();
+	
     #if (flash || nme || openfl || lime)
         private static var _UI_EXECUTOR : UiThreadTaskExecutor = null;
         public static var UI_EXECUTOR(get, null) : UiThreadTaskExecutor;
@@ -43,5 +48,7 @@ class TaskExt {
 
             return _BACKGROUND_EXECUTOR;
         }
-    #end
+    #else
+		public static var BACKGROUND_EXECUTOR = IMMEDIATE_EXECUTOR;
+	#end
 }
