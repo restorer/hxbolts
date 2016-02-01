@@ -15,7 +15,7 @@
  */
 package hxbolts;
 
-import hxbolts.executors.ImmediateTaskExecutor;
+import hxbolts.executors.Executors;
 import hxbolts.executors.TaskExecutor;
 
 #if cpp
@@ -27,8 +27,6 @@ import hxbolts.executors.TaskExecutor;
 #end
 
 class Task<TResult> {
-    public static var IMMEDIATE_EXECUTOR(default, null) : TaskExecutor = new ImmediateTaskExecutor();
-
     private var _isCompleted : Bool;
     private var _isFaulted : Bool;
     private var _isCancelled : Bool;
@@ -100,7 +98,7 @@ class Task<TResult> {
         ?executor : TaskExecutor
     ) : Task<TContinuationResult> {
         if (executor == null) {
-            executor = IMMEDIATE_EXECUTOR;
+            executor = Executors.IMMEDIATE_EXECUTOR;
         }
 
         var tcs = new TaskCompletionSource<TContinuationResult>();
@@ -138,7 +136,7 @@ class Task<TResult> {
         ?executor : TaskExecutor
     ) : Task<TContinuationResult> {
         if (executor == null) {
-            executor = IMMEDIATE_EXECUTOR;
+            executor = Executors.IMMEDIATE_EXECUTOR;
         }
 
         var tcs = new TaskCompletionSource<TContinuationResult>();
@@ -303,7 +301,7 @@ class Task<TResult> {
 
     public static function call<TResult>(callable : Void -> Null<TResult>, ?executor : TaskExecutor) : Task<TResult> {
         if (executor == null) {
-            executor = IMMEDIATE_EXECUTOR;
+            executor = Executors.IMMEDIATE_EXECUTOR;
         }
 
         var tcs = new TaskCompletionSource<TResult>();

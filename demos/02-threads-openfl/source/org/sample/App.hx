@@ -1,7 +1,7 @@
 package org.sample;
 
 import hxbolts.Task;
-import hxbolts.TaskExt;
+import hxbolts.executors.Executors;
 import motion.Actuate;
 import motion.easing.Linear;
 import openfl.Assets;
@@ -28,12 +28,17 @@ class App extends Sprite {
     private var currentPrime : Int = 1;
     private var primesFound : Int = 1;
 
-    private var uiThread : Thread;
+    #if (cpp || neko || java)
+        private var uiThread : Thread;
+    #end
 
     public function new() : Void {
         super();
 
-        uiThread = Thread.current();
+        #if (cpp || neko || java)
+            uiThread = Thread.current();
+        #end
+
         addChild(new FPS(10, 10, 0xff0000));
 
         var logoSprite = new Sprite();
@@ -53,8 +58,10 @@ class App extends Sprite {
 
         #if no_background_thread
             addTextField(50 + 30 * 2, "IN THE SAME UI THREAD.");
-        #else
+        #elseif (cpp || neko || java)
             addTextField(50 + 30 * 2, "IN THE BACKGROUND THREAD.");
+        #else
+            addTextField(50 + 30 * 2, "IN THE FAKE BACKGROUND THREAD.");
         #end
 
         currentPrimeTextField = addTextField(450);
@@ -97,25 +104,31 @@ class App extends Sprite {
     }
 
     private function computeNextPrime() : Void {
-        if (Thread.current() != uiThread) {
-            trace("ERROR: Non-UI thread at start of computeNextPrime()");
-        }
+        #if (cpp || neko || java)
+            if (Thread.current() != uiThread) {
+                trace("ERROR: Non-UI thread at start of computeNextPrime()");
+            }
+        #end
 
         Task.call(function() : Int {
-            if (Thread.current() != uiThread) {
-                trace("ERROR: Non-UI in first task");
-            }
+            #if (cpp || neko || java)
+                if (Thread.current() != uiThread) {
+                    trace("ERROR: Non-UI in first task");
+                }
+            #end
 
             return currentPrime;
         }).continueWith(function(task : Task<Int>) : Int {
-            #if no_background_thread
-                if (Thread.current() != uiThread) {
-                    trace("ERROR: Non-UI thread in computation function");
-                }
-            #else
-                if (Thread.current() == uiThread) {
-                    trace("ERROR: UI thread in computation function");
-                }
+            #if (cpp || neko || java)
+                #if no_background_thread
+                    if (Thread.current() != uiThread) {
+                        trace("ERROR: Non-UI thread in computation function");
+                    }
+                #else
+                    if (Thread.current() == uiThread) {
+                        trace("ERROR: UI thread in computation function");
+                    }
+                #end
             #end
 
             var number = task.result;
@@ -138,20 +151,30 @@ class App extends Sprite {
                     break;
                 }
 
-                Sys.sleep(0.1); // sleep for teh slowness
+                #if (cpp || neko || java)
+                    Sys.sleep(0.1); // sleep for teh slowness
+                #else
+                    var sum : Int = 0;
+
+                    for (i in 0 ... 100000) {
+                        sum += i;
+                    }
+                #end
             }
 
             return number;
-        } #if !no_background_thread , TaskExt.BACKGROUND_EXECUTOR #end).continueWith(function(task : Task<Int>) : Void {
-            if (Thread.current() != uiThread) {
-                trace("ERROR: Non-UI thread at continueWith()");
-            }
+        } #if !no_background_thread , Executors.BACKGROUND_EXECUTOR #end).continueWith(function(task : Task<Int>) : Void {
+            #if (cpp || neko || java)
+                if (Thread.current() != uiThread) {
+                    trace("ERROR: Non-UI thread at continueWith()");
+                }
+            #end
 
             currentPrime = task.result;
             primesFound++;
 
             updateTextFields();
-            TaskExt.UI_EXECUTOR.execute(computeNextPrime);
-        }, TaskExt.UI_EXECUTOR);
+            Executors.UI_EXECUTOR.execute(computeNextPrime);
+        }, Executors.UI_EXECUTOR);
     }
 }

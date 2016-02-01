@@ -3,7 +3,7 @@
 	<meta title="Threads" package="org.sample" version="1.0.0" company="EightSines" />
 
 	<app main="org.sample.App" path="export" file="sample" />
-	<icon path="assets/logo.png" />
+	<icon path="assets/Logo.png" />
 
     <set name="legacy" if="native" />
     <haxedef name="legacy" if="legacy" />

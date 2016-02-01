@@ -17,29 +17,46 @@ package hxbolts.executors;
 #end
 
 class CurrentThreadTaskExecutor implements TaskExecutor {
-    private var runnableQueueMutex : Mutex = new Mutex();
+    #if (cpp || neko || jave)
+        private var runnableQueueMutex : Mutex = new Mutex();
+    #end
+
     private var runnableQueue : List<Void -> Void> = new List<Void -> Void>();
 
     public function new() : Void {
     }
 
     public function execute(runnable : Void -> Void) : Void {
-        runnableQueueMutex.acquire();
+        #if (cpp || neko || jave)
+            runnableQueueMutex.acquire();
+        #end
+
         runnableQueue.add(runnable);
-        runnableQueueMutex.release();
+
+        #if (cpp || neko || jave)
+            runnableQueueMutex.release();
+        #end
     }
 
     public function tick() : Void {
-        runnableQueueMutex.acquire();
+        #if (cpp || neko || jave)
+            runnableQueueMutex.acquire();
+        #end
 
         if (runnableQueue.isEmpty()) {
-            runnableQueueMutex.release();
+            #if (cpp || neko || jave)
+                runnableQueueMutex.release();
+            #end
+
             return;
         }
 
         var queue = Lambda.list(runnableQueue);
         runnableQueue.clear();
-        runnableQueueMutex.release();
+
+        #if (cpp || neko || jave)
+            runnableQueueMutex.release();
+        #end
 
         var runnable : Void -> Void;
 
