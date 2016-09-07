@@ -1,51 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-us">
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <meta charset="UTF-8">
+    <title>hxbolts by restorer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <title>hxbolts</title>
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
   </head>
-
   <body>
-    <div id="container">
-      <div class="inner">
+    <section class="page-header">
+      <h1 class="project-name">hxbolts</h1>
+      <h2 class="project-tagline">Deal with async tasks like a boss</h2>
+      <a href="https://github.com/restorer/hxbolts" class="btn">View on GitHub</a>
+      <a href="https://github.com/restorer/hxbolts/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/restorer/hxbolts/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-        <header>
-          <img src="images/hxbolts-logo.png" alt="" class="logo" />
-          <h1>hxbolts</h1>
-          <h2>Deal with async tasks like a boss</h2>
-        </header>
+    <section class="main-content">
+      <p><img src="images/hxbolts-logo.png" alt="Logo"></p>
 
-        <section id="downloads" class="clearfix">
-          <a href="https://github.com/restorer/hxbolts/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
-          <a href="https://github.com/restorer/hxbolts/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
-          <a href="https://github.com/restorer/hxbolts" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>
-
-        <hr>
-
-        <section id="main_content">
-          <p>hxbolts is a port of a "tasks" component from java library named Bolts.
+<p>hxbolts is a port of a "tasks" component from java library named Bolts.
 A task is kind of like a JavaScript Promise, but with different API.</p>
 
 <p>While original java library is about keeping long-running operations out of the UI thread,
 current version of hxbolts is more about transforming async callback hell into nice looking code.</p>
 
 <h2>
-<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
 
 <pre><code>haxelib install hxbolts
 </code></pre>
 
 <h2>
-<a id="lets-talk" class="anchor" href="#lets-talk" aria-hidden="true"><span class="octicon octicon-link"></span></a>Let's talk</h2>
+<a id="lets-talk" class="anchor" href="#lets-talk" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Let's talk</h2>
 
 <p>Imagine you have to delete all comments from blog while player playing in your game, mwahahaha <g-emoji alias="smiling_imp" fallback-src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f608.png">😈</g-emoji> . But server API has only 4 methods:</p>
 
@@ -58,14 +47,14 @@ current version of hxbolts is more about transforming async callback hell into n
 
 <p>Let you have a function for making async requests:</p>
 
-<div class="highlight highlight-haxe"><pre><span class="pl-k">private</span> <span class="pl-k">static</span> <span class="pl-k">function</span> <span class="pl-en">makeRequestAsync</span>(
+<div class="highlight highlight-source-haxe-2"><pre><span class="pl-k">private</span> <span class="pl-k">static</span> <span class="pl-k">function</span> <span class="pl-en">makeRequestAsync</span>(
     url : <span class="pl-c1">String</span>,
     callback : <span class="pl-c1">String</span> <span class="pl-k">-</span><span class="pl-k">&gt;</span> <span class="pl-c1">Void</span>
 ) : <span class="pl-c1">Void</span> { <span class="pl-k">...</span> }</pre></div>
 
 <p>Usually code will look like:</p>
 
-<div class="highlight highlight-haxe"><pre><span class="pl-k">var</span> <span class="pl-en">token</span> : <span class="pl-c1">String</span> <span class="pl-k">=</span> <span class="pl-c1">null</span>;
+<div class="highlight highlight-source-haxe-2"><pre><span class="pl-k">var</span> <span class="pl-en">token</span> : <span class="pl-c1">String</span> <span class="pl-k">=</span> <span class="pl-c1">null</span>;
 
 makeRequestAsync(<span class="pl-s"><span class="pl-pds">"</span>http://blog.tld/api/authorize?user=me<span class="pl-pds">"</span></span>, <span class="pl-k">function</span>(result : <span class="pl-c1">String</span>) : <span class="pl-c1">Void</span> {
     <span class="pl-k">try</span> {
@@ -102,11 +91,11 @@ makeRequestAsync(<span class="pl-s"><span class="pl-pds">"</span>http://blog.tld
 <p>Uh oh... And I don’t even started deletion process.</p>
 
 <h2>
-<a id="hxbolts-coming-to-the-rescue" class="anchor" href="#hxbolts-coming-to-the-rescue" aria-hidden="true"><span class="octicon octicon-link"></span></a>hxbolts coming to the rescue!</h2>
+<a id="hxbolts-coming-to-the-rescue" class="anchor" href="#hxbolts-coming-to-the-rescue" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>hxbolts coming to the rescue!</h2>
 
 <p>At first we need to <em>boltify</em> makeRequestAsync function:</p>
 
-<div class="highlight highlight-haxe"><pre><span class="pl-k">private</span> <span class="pl-k">static</span> <span class="pl-k">function</span> <span class="pl-en">makeRequestTask</span>(url : <span class="pl-c1">String</span>) : <span class="pl-c1">Task</span>&lt;<span class="pl-c1">String</span>&gt; {
+<div class="highlight highlight-source-haxe-2"><pre><span class="pl-k">private</span> <span class="pl-k">static</span> <span class="pl-k">function</span> <span class="pl-en">makeRequestTask</span>(url : <span class="pl-c1">String</span>) : <span class="pl-c1">Task</span><span class="pl-k">&lt;</span><span class="pl-c1">String</span><span class="pl-k">&gt;</span> {
     <span class="pl-k">var</span> tcs <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-c1">TaskCompletionSource</span><span class="pl-k">&lt;</span><span class="pl-c1">String</span><span class="pl-k">&gt;</span>();
 
     makeRequestAsync(url, <span class="pl-k">function</span>(result : <span class="pl-c1">String</span>) : <span class="pl-c1">Void</span> {
@@ -118,7 +107,7 @@ makeRequestAsync(<span class="pl-s"><span class="pl-pds">"</span>http://blog.tld
 
 <p>The rest is easy:</p>
 
-<div class="highlight highlight-haxe"><pre><span class="pl-k">var</span> <span class="pl-en">token</span> : <span class="pl-c1">String</span> <span class="pl-k">=</span> <span class="pl-c1">null</span>;
+<div class="highlight highlight-source-haxe-2"><pre><span class="pl-k">var</span> <span class="pl-en">token</span> : <span class="pl-c1">String</span> <span class="pl-k">=</span> <span class="pl-c1">null</span>;
 
 makeRequestTask(<span class="pl-s"><span class="pl-pds">"</span>http://blog.tld/api/authorize?user=me<span class="pl-pds">"</span></span>).onSuccessTask(<span class="pl-k">function</span>(task : <span class="pl-c1">Task</span><span class="pl-k">&lt;</span><span class="pl-c1">String</span><span class="pl-k">&gt;</span>) : <span class="pl-c1">Task</span><span class="pl-k">&lt;</span><span class="pl-c1">String</span><span class="pl-k">&gt;</span> {
     token <span class="pl-k">=</span> <span class="pl-c1">Reflect.</span>field(<span class="pl-c1">Json.</span>parse(task.result), <span class="pl-s"><span class="pl-pds">"</span>token<span class="pl-pds">"</span></span>);
@@ -152,15 +141,15 @@ makeRequestTask(<span class="pl-s"><span class="pl-pds">"</span>http://blog.tld/
 <p>Code is linear, easy to understand. It even doesn’t contains try / catch blocks, because hxbolts will take care about exceptions.</p>
 
 <p>Check out more examples at <a href="https://github.com/restorer/hxbolts">hxbolts repo</a>.</p>
-        </section>
 
-        <footer>
-          hxbolts is maintained by <a href="https://github.com/restorer">restorer</a><br>
-          This page was generated by <a href="https://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/restorer/hxbolts">hxbolts</a> is maintained by <a href="https://github.com/restorer">restorer</a>.</span>
 
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
 
-      </div>
-    </div>
+    </section>
+
+  
   </body>
 </html>
