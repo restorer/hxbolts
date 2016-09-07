@@ -11,7 +11,7 @@ package hxbolts;
 class IllegalTaskStateException {
     public var message(default, null) : String;
 
-    public function new(message : String) : Void {
+    public function new(message : String) {
         this.message = message;
     }
 }

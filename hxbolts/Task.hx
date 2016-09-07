@@ -40,13 +40,13 @@ class Task<TResult> {
     public var result(get, never) : Null<TResult>;
     public var error(get, never) : Dynamic;
 
-    private var continuations : Array<Task<TResult> -> Void>;
+    private var continuations : Array<Task<TResult> -> Nothing>;
 
     #if (cpp || neko || java)
         private var mutex : Mutex;
     #end
 
-    private function new() : Void {
+    private function new() {
         _isCompleted = false;
         _isFaulted = false;
         _isCancelled = false;
@@ -59,8 +59,13 @@ class Task<TResult> {
         #end
     }
 
-    public function makeVoid() : Task<Void> {
-        return continueWithTask(function(task : Task<TResult>) : Task<Void> {
+    @:deprecated
+    public inline function makeVoid() : Task<Nothing> {
+        return makeNothing();
+    }
+
+    public function makeNothing() : Task<Nothing> {
+        return continueWithTask(function(task : Task<TResult>) : Task<Nothing> {
             if (task.isCancelled) {
                 return cast Task.cancelled();
             }
@@ -75,12 +80,12 @@ class Task<TResult> {
 
     public function continueWhile(
         predicate : Void -> Bool,
-        continuation : Task<Void> -> Task<Void>,
+        continuation : Task<Nothing> -> Task<Nothing>,
         ?executor : TaskExecutor
-    ) : Task<Void> {
-        var predicateContinuation = new Array<Task<Void> -> Task<Void>>();
+    ) : Task<Nothing> {
+        var predicateContinuation = new Array<Task<Nothing> -> Task<Nothing>>();
 
-        predicateContinuation.push(function(task : Task<Void>) : Task<Void> {
+        predicateContinuation.push(function(task : Task<Nothing>) : Task<Nothing> {
             if (predicate()) {
                 return cast Task.forResult(null)
                     .onSuccessTask(continuation, executor)
@@ -90,7 +95,7 @@ class Task<TResult> {
             return cast Task.forResult(null);
         });
 
-        return makeVoid().continueWithTask(predicateContinuation[0], executor);
+        return makeNothing().continueWithTask(predicateContinuation[0], executor);
     }
 
     public function continueWith<TContinuationResult>(
@@ -108,8 +113,9 @@ class Task<TResult> {
             var wasCompleted = _isCompleted;
 
             if (!wasCompleted) {
-                continuations.push(function(task : Task<TResult>) : Void {
+                continuations.push(function(task : Task<TResult>) : Nothing {
                     completeImmediately(tcs, continuation, task, executor);
+                    return null;
                 });
             }
 
@@ -122,8 +128,9 @@ class Task<TResult> {
             if (_isCompleted) {
                 completeImmediately(tcs, continuation, this, executor);
             } else {
-                continuations.push(function(task : Task<TResult>) : Void {
+                continuations.push(function(task : Task<TResult>) : Nothing {
                     completeImmediately(tcs, continuation, task, executor);
+                    return null;
                 });
             }
         #end
@@ -146,8 +153,9 @@ class Task<TResult> {
             var wasCompleted = _isCompleted;
 
             if (!wasCompleted) {
-                continuations.push(function(task : Task<TResult>) : Void {
+                continuations.push(function(task : Task<TResult>) : Nothing {
                     completeAfterTask(tcs, continuation, task, executor);
+                    return null;
                 });
             }
 
@@ -160,8 +168,9 @@ class Task<TResult> {
             if (_isCompleted) {
                 completeAfterTask(tcs, continuation, this, executor);
             } else {
-                continuations.push(function(task : Task<TResult>) : Void {
+                continuations.push(function(task : Task<TResult>) : Nothing {
                     completeAfterTask(tcs, continuation, task, executor);
+                    return null;
                 });
             }
         #end
@@ -332,7 +341,7 @@ class Task<TResult> {
         #end
 
         for (t in tasks) {
-            t.continueWith(function(task : Task<TResult>) : Void {
+            t.continueWith(function(task : Task<TResult>) : Nothing {
                 #if (cpp || neko || java)
                     var val = false;
                     valMutex.acquire();
@@ -353,18 +362,20 @@ class Task<TResult> {
                         firstCompleted.setResult(task);
                     }
                 #end
+
+                return null;
             });
         }
 
         return firstCompleted.task;
     }
 
-    public static function whenAll(tasks : Array<Task<Dynamic>>) : Task<Void> {
+    public static function whenAll(tasks : Array<Task<Dynamic>>) : Task<Nothing> {
         if (tasks.length == 0) {
             return cast Task.forResult(null);
         }
 
-        var allFinished = new TaskCompletionSource<Void>();
+        var allFinished = new TaskCompletionSource<Nothing>();
         var causes = new Array<Dynamic>();
         var count = tasks.length;
         var isAnyCancelled = false;
@@ -374,7 +385,7 @@ class Task<TResult> {
         #end
 
         for (t in tasks) {
-            t.continueWith(function(task : Task<Dynamic>) : Void {
+            t.continueWith(function(task : Task<Dynamic>) : Nothing {
                 if (task.isFaulted) {
                     #if (cpp || neko || java)
                         valMutex.acquire();
@@ -429,6 +440,8 @@ class Task<TResult> {
                         }
                     }
                 #end
+
+                return null;
             });
         }
 
@@ -436,7 +449,7 @@ class Task<TResult> {
     }
 
     public static function whenAllResult<TResult>(tasks : Array<Task<TResult>>) : Task<Array<Null<TResult>>> {
-        return whenAll(tasks).onSuccess(function(task : Task<Void>) : Array<Null<TResult>> {
+        return whenAll(tasks).onSuccess(function(task : Task<Nothing>) : Array<Null<TResult>> {
             var results = new Array<Null<TResult>>();
 
             for (t in tasks) {
@@ -477,7 +490,7 @@ class Task<TResult> {
                 if (resultTask == null) {
                     tcs.setResult(null);
                 } else {
-                    resultTask.continueWith(function(task : Task<TContinuationResult>) : Void {
+                    resultTask.continueWith(function(task : Task<TContinuationResult>) : Nothing {
                         if (task.isFaulted) {
                             tcs.setError(task.error);
                         } else if (task.isCancelled) {
@@ -485,6 +498,8 @@ class Task<TResult> {
                         } else {
                             tcs.setResult(task.result);
                         }
+
+                        return null;
                     });
                 }
             } catch (e : TaskCancellationException) {

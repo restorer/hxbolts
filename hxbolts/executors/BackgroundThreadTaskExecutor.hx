@@ -26,9 +26,9 @@ class BackgroundThreadTaskExecutor implements TaskExecutor {
     private var mutex : Mutex = new Mutex();
     private var workerPool : Array<BackgroundThreadTaskExecutorWorker> = [];
 
-    public function new(poolSize : Int) : Void {
+    public function new(poolSize : Int) {
         if (poolSize < 1) {
-            throw 'poolSize must be >= 1';
+            throw "poolSize must be >= 1";
         }
 
         for (i in 0 ... poolSize) {

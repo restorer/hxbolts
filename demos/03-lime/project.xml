@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
-	<meta title="Lime" package="org.sample" version="1.0.0" company="EightSines" />
+    <meta title="Lime" package="org.sample" version="1.0.0" company="EightSines" />
 
-	<app main="org.sample.App" path="export" file="sample" />
-	<icon path="assets/logo.png" />
+    <app main="org.sample.App" path="export" file="sample" />
+    <icon path="assets/logo.png" />
 
-	<haxelib name="lime" />
+    <haxelib name="lime" />
     <haxelib name="hxbolts" />
 
-	<source path="source" />
+    <source path="source" />
     <assets path="assets" />
 
     <architecture name="x86" if="android" />

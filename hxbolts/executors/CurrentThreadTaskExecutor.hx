@@ -23,7 +23,7 @@ class CurrentThreadTaskExecutor implements TaskExecutor {
 
     private var runnableQueue : List<Void -> Void> = new List<Void -> Void>();
 
-    public function new() : Void {
+    public function new() {
     }
 
     public function execute(runnable : Void -> Void) : Void {

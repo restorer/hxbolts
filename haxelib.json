@@ -4,7 +4,7 @@
     "license": "BSD",
     "tags": ["async", "asynchronous", "bolts", "cross", "promise"],
     "description": "Deal with async tasks like a boss. Pure Haxe port of java library named Bolts.",
-    "version": "1.0.1",
-    "releasenote": "Multi-threading support.",
+    "version": "1.0.2",
+    "releasenote": "Support for Haxe 3.3. This update is not backward-compatible - you must change every Task<Void> to Task<Nothing>.",
     "contributors": ["restorer"]
 }

@@ -19,7 +19,7 @@ package hxbolts;
 class TaskCompletionSource<TResult> {
     public var task(default, null) : Task<TResult>;
 
-    public function new() : Void {
+    public function new() {
         this.task = new Task<TResult>();
     }
 

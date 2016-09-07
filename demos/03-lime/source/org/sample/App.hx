@@ -1,10 +1,11 @@
 package org.sample;
 
 import haxe.Timer;
-import hxbolts.executors.Executors;
+import hxbolts.Nothing;
 import hxbolts.Task;
-import lime.app.Application;
+import hxbolts.executors.Executors;
 import lime.Assets;
+import lime.app.Application;
 import lime.graphics.Image;
 import lime.graphics.Renderer;
 
@@ -231,14 +232,14 @@ class App extends Application {
 
     private function computeNextPrime() : Void {
         #if (cpp || neko || java)
-            if (Thread.current() != uiThread) {
+            if (!areThreadsEquals(Thread.current(), uiThread)) {
                 trace("ERROR: Non-UI thread at start of computeNextPrime()");
             }
         #end
 
         Task.call(function() : Int {
             #if (cpp || neko || java)
-                if (Thread.current() != uiThread) {
+                if (!areThreadsEquals(Thread.current(), uiThread)) {
                     trace("ERROR: Non-UI in first task");
                 }
             #end
@@ -247,11 +248,11 @@ class App extends Application {
         }).continueWith(function(task : Task<Int>) : Int {
             #if (cpp || neko || java)
                 #if no_background_thread
-                    if (Thread.current() != uiThread) {
+                    if (!areThreadsEquals(Thread.current(), uiThread)) {
                         trace("ERROR: Non-UI thread in computation function");
                     }
                 #else
-                    if (Thread.current() == uiThread) {
+                    if (areThreadsEquals(Thread.current(), uiThread)) {
                         trace("ERROR: UI thread in computation function");
                     }
                 #end
@@ -289,9 +290,9 @@ class App extends Application {
             }
 
             return number;
-        } #if !no_background_thread , Executors.BACKGROUND_EXECUTOR #end).continueWith(function(task : Task<Int>) : Void {
+        } #if !no_background_thread , Executors.BACKGROUND_EXECUTOR #end).continueWith(function(task : Task<Int>) : Nothing {
             #if (cpp || neko || java)
-                if (Thread.current() != uiThread) {
+                if (!areThreadsEquals(Thread.current(), uiThread)) {
                     trace("ERROR: Non-UI thread at continueWith()");
                 }
             #end
@@ -301,6 +302,18 @@ class App extends Application {
 
             updateTextFields();
             Executors.UI_EXECUTOR.execute(computeNextPrime);
+
+            return null;
         }, Executors.UI_EXECUTOR);
     }
+
+    #if (cpp || neko || java)
+        private static inline function areThreadsEquals(t1 : Thread, t2 : Thread) : Bool {
+            #if (cpp && haxe_ver >= "3.3")
+                return (t1.handle == t2.handle);
+            #else
+                return (t1 == t2);
+            #end
+        }
+    #end
 }

@@ -1,9 +1,10 @@
 package org.sample;
 
+import haxe.Json;
+import haxe.Timer;
+import hxbolts.Nothing;
 import hxbolts.Task;
 import hxbolts.TaskCompletionSource;
-import haxe.Timer;
-import haxe.Json;
 
 using StringTools;
 
@@ -56,7 +57,7 @@ class Demo {
             }
 
             return Task.whenAllResult(tasks);
-        }).onSuccessTask(function(task : Task<Array<String>>) : Task<Void> {
+        }).onSuccessTask(function(task : Task<Array<String>>) : Task<Nothing> {
             var tasks = new Array<Task<String>>();
 
             for (response in task.result) {
@@ -66,13 +67,15 @@ class Demo {
             }
 
             return Task.whenAll(tasks);
-        }).continueWith(function(task : Task<Void>) : Void {
+        }).continueWith(function(task : Task<Nothing>) : Nothing {
             if (task.isSuccessed) {
                 trace("Everything is good");
                 trace(deletedCommentsIds);
             } else {
                 trace("Error occurred : " + Std.string(task.error));
             }
+
+            return null;
         });
     }
 

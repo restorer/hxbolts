@@ -9,6 +9,7 @@
 package ;
 
 import haxe.Timer;
+import hxbolts.Nothing;
 import hxbolts.Task;
 import massive.munit.Assert;
 import massive.munit.async.AsyncFactory;
@@ -31,7 +32,7 @@ import massive.munit.util.Timer;
 #end
 
 class TaskExecutorsTest {
-    public function new() : Void {
+    public function new() {
     }
 
     #if (cpp || neko || java)
@@ -55,21 +56,24 @@ class TaskExecutorsTest {
             Assert.isTrue(task2ThreadOk);
         }, 5000);
 
-        Task.call(function() : Void {
+        Task.call(function() : Nothing {
             Sys.sleep(0.1);
 
             mutex.acquire();
             task1Executed = true;
-            task1ThreadOk = (Thread.current() == initialThread);
+            task1ThreadOk = areThreadsEquals(Thread.current(), initialThread);
             mutex.release();
-        }, currentThreadTaskExecutor).continueWith(function(t : Task<Void>) : Void {
-            task2ThreadOk = (Thread.current() == initialThread);
+
+            return null;
+        }, currentThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
+            task2ThreadOk = areThreadsEquals(Thread.current(), initialThread);
 
             mutex.acquire();
             stopLooper = true;
             mutex.release();
 
             handler();
+            return null;
         });
 
         mutex.acquire();
@@ -116,16 +120,19 @@ class TaskExecutorsTest {
             backgroundThreadTaskExecutor.shutdown();
         }, 5000);
 
-        Task.call(function() : Void {
+        Task.call(function() : Nothing {
             Sys.sleep(0.1);
 
             mutex.acquire();
             task1Executed = true;
-            task1ThreadOk = (Thread.current() != initialThread);
+            task1ThreadOk = !areThreadsEquals(Thread.current(), initialThread);
             mutex.release();
-        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Void>) : Void {
-            task2ThreadOk = (Thread.current() != initialThread);
+
+            return null;
+        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
+            task2ThreadOk = !areThreadsEquals(Thread.current(), initialThread);
             handler();
+            return null;
         });
 
         mutex.acquire();
@@ -163,34 +170,41 @@ class TaskExecutorsTest {
             backgroundThreadTaskExecutor.shutdown();
         }, 5000);
 
-        Task.call(function() : Void {
+        Task.call(function() : Nothing {
             Sys.sleep(0.1);
 
             mutex.acquire();
             task1Executed = true;
-            task1ThreadOk = (Thread.current() != initialThread);
+            task1ThreadOk = !areThreadsEquals(Thread.current(), initialThread);
             mutex.release();
-        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Void>) : Void {
+
+            return null;
+        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
             Sys.sleep(0.1);
 
             mutex.acquire();
-            task2ThreadOk = (Thread.current() == initialThread);
+            task2ThreadOk = areThreadsEquals(Thread.current(), initialThread);
             mutex.release();
-        }, currentThreadTaskExecutor).continueWith(function(t : Task<Void>) : Void {
+
+            return null;
+        }, currentThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
             Sys.sleep(0.1);
 
             mutex.acquire();
-            task3ThreadOk = (Thread.current() != initialThread);
+            task3ThreadOk = !areThreadsEquals(Thread.current(), initialThread);
             mutex.release();
-        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Void>) : Void {
+
+            return null;
+        }, backgroundThreadTaskExecutor).continueWith(function(t : Task<Nothing>) : Nothing {
             Sys.sleep(0.1);
 
             mutex.acquire();
-            task4ThreadOk = (Thread.current() == initialThread);
+            task4ThreadOk = areThreadsEquals(Thread.current(), initialThread);
             stopLooper = true;
             mutex.release();
 
             handler();
+            return null;
         }, currentThreadTaskExecutor);
 
         mutex.acquire();
@@ -215,6 +229,14 @@ class TaskExecutorsTest {
 
             Sys.sleep(0.1);
         }
+    }
+
+    private static inline function areThreadsEquals(t1 : Thread, t2 : Thread) : Bool {
+        #if (cpp && haxe_ver >= "3.3")
+            return (t1.handle == t2.handle);
+        #else
+            return (t1 == t2);
+        #end
     }
 
     #end

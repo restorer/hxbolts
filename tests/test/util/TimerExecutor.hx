@@ -14,7 +14,7 @@ import massive.munit.util.Timer;
 class TimerExecutor implements TaskExecutor {
     private var delay : Int;
 
-    public function new(delay : Int) : Void {
+    public function new(delay : Int) {
         this.delay = delay;
     }
 

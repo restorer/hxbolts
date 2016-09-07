@@ -9,6 +9,6 @@
 package hxbolts;
 
 class TaskCancellationException {
-    public function new() : Void {
+    public function new() {
     }
 }

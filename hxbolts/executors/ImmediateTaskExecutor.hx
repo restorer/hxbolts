@@ -9,7 +9,7 @@
 package hxbolts.executors;
 
 class ImmediateTaskExecutor implements TaskExecutor {
-    public function new() : Void {
+    public function new() {
     }
 
     public function execute(runnable : Void -> Void) : Void {

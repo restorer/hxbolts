@@ -15,16 +15,17 @@
  */
 package ;
 
+import hxbolts.Nothing;
 import hxbolts.Task;
-import hxbolts.TaskCompletionSource;
 import hxbolts.TaskCancellationException;
+import hxbolts.TaskCompletionSource;
 import massive.munit.Assert;
 import massive.munit.async.AsyncFactory;
 import util.TestException;
 import util.TimerExecutor;
 
 class TaskTest {
-    public function new() : Void {
+    public function new() {
     }
 
     @Test
@@ -61,7 +62,7 @@ class TaskTest {
         var errorHandled : Bool = false;
         var cancelledHandled : Bool = false;
 
-        complete.continueWith(function(task : Task<Int>) : Void {
+        complete.continueWith(function(task : Task<Int>) : Nothing {
             Assert.areSame(complete, task);
 
             Assert.isTrue(task.isCompleted);
@@ -71,9 +72,10 @@ class TaskTest {
             Assert.isTrue(task.isSuccessed);
 
             completeHandled = true;
+            return null;
         });
 
-        error.continueWith(function(task : Task<Int>) : Void {
+        error.continueWith(function(task : Task<Int>) : Nothing {
             Assert.areSame(error, task);
 
             Assert.isTrue(task.isCompleted);
@@ -83,9 +85,10 @@ class TaskTest {
             Assert.isFalse(task.isSuccessed);
 
             errorHandled = true;
+            return null;
         });
 
-        cancelled.continueWith(function(task : Task<Int>) : Void {
+        cancelled.continueWith(function(task : Task<Int>) : Nothing {
             Assert.areSame(cancelled, task);
 
             Assert.isTrue(task.isCompleted);
@@ -94,6 +97,7 @@ class TaskTest {
             Assert.isFalse(task.isSuccessed);
 
             cancelledHandled = true;
+            return null;
         });
 
         Assert.isTrue(completeHandled);
@@ -157,9 +161,10 @@ class TaskTest {
 
         Task.call(function() : Int {
             return 5;
-        }, timerExecutor).continueWith(function(t : Task<Int>) : Void {
+        }, timerExecutor).continueWith(function(t : Task<Int>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
@@ -175,9 +180,10 @@ class TaskTest {
 
         Task.call(function() : Int {
             throw new TestException();
-        }, timerExecutor).continueWith(function(t : Task<Int>) : Void {
+        }, timerExecutor).continueWith(function(t : Task<Int>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
@@ -192,9 +198,10 @@ class TaskTest {
 
         Task.call(function() : Int {
             throw new TaskCancellationException();
-        }, timerExecutor).continueWith(function(t : Task<Int>) : Void {
+        }, timerExecutor).continueWith(function(t : Task<Int>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
@@ -213,15 +220,16 @@ class TaskTest {
             return t.result + 1;
         }, timerExecutor).continueWithTask(function(t : Task<Int>) : Task<Int> {
             return Task.forResult(t.result + 1);
-        }, timerExecutor).continueWith(function(t : Task<Int>) : Void {
+        }, timerExecutor).continueWith(function(t : Task<Int>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
     @Test
     public function testWhenAllNoTasks() : Void {
-        var task : Task<Void> = Task.whenAll(new Array<Task<Void>>());
+        var task : Task<Nothing> = Task.whenAll(new Array<Task<Nothing>>());
 
         Assert.isTrue(task.isCompleted);
         Assert.isFalse(task.isFaulted);
@@ -258,9 +266,10 @@ class TaskTest {
             Assert.areEqual(2000, task.result.result);
         }, 5000);
 
-        Task.whenAny(tasks).continueWith(function(t : Task<Task<Int>>) : Void {
+        Task.whenAny(tasks).continueWith(function(t : Task<Task<Int>>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
@@ -293,9 +302,10 @@ class TaskTest {
             Assert.areEqual("SUCCESS", task.result.result);
         }, 5000);
 
-        Task.whenAny(tasks).continueWith(function(t : Task<Task<Dynamic>>) : Void {
+        Task.whenAny(tasks).continueWith(function(t : Task<Task<Dynamic>>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
@@ -329,9 +339,10 @@ class TaskTest {
             Assert.areSame(error, task.result.error);
         }, 5000);
 
-        Task.whenAny(tasks).continueWith(function(t : Task<Task<Dynamic>>) : Void {
+        Task.whenAny(tasks).continueWith(function(t : Task<Task<Dynamic>>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
@@ -362,20 +373,22 @@ class TaskTest {
             Assert.isFalse(task.result.isSuccessed);
         }, 5000);
 
-        Task.whenAny(tasks).continueWith(function(t : Task<Task<Dynamic>>) : Void {
+        Task.whenAny(tasks).continueWith(function(t : Task<Task<Dynamic>>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
     @AsyncTest
     public function testWhenAllSuccess(factory : AsyncFactory) : Void {
-        var task : Task<Void> = null;
-        var tasks = new Array<Task<Void>>();
+        var task : Task<Nothing> = null;
+        var tasks = new Array<Task<Nothing>>();
 
         for (i in 0 ... 20) {
-            tasks.push(Task.call(function() : Void {
+            tasks.push(Task.call(function() : Nothing {
                 // do nothing
+                return null;
             }, new TimerExecutor(randomInt(10, 50))));
         }
 
@@ -390,23 +403,26 @@ class TaskTest {
             }
         }, 5000);
 
-        Task.whenAll(tasks).continueWith(function(t : Task<Void>) : Void {
+        Task.whenAll(tasks).continueWith(function(t : Task<Nothing>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
     @AsyncTest
     public function testWhenAllOneError(factory : AsyncFactory) : Void {
-        var task : Task<Void> = null;
+        var task : Task<Nothing> = null;
         var error = new TestException();
-        var tasks = new Array<Task<Void>>();
+        var tasks = new Array<Task<Nothing>>();
 
         for (i in 0 ... 20) {
-            tasks.push(Task.call(function() : Void {
+            tasks.push(Task.call(function() : Nothing {
                 if (i == 10) {
                     throw error;
                 }
+
+                return null;
             }, new TimerExecutor(randomInt(10, 50))));
         }
 
@@ -425,26 +441,29 @@ class TaskTest {
             }
         }, 5000);
 
-        Task.whenAll(tasks).continueWith(function(t : Task<Void>) : Void {
+        Task.whenAll(tasks).continueWith(function(t : Task<Nothing>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
     @AsyncTest
     public function testWhenAllTwoErrors(factory : AsyncFactory) : Void {
-        var task : Task<Void> = null;
+        var task : Task<Nothing> = null;
         var error0 = new TestException();
         var error1 = new TestException();
-        var tasks = new Array<Task<Void>>();
+        var tasks = new Array<Task<Nothing>>();
 
         for (i in 0 ... 20) {
-            tasks.push(Task.call(function() : Void {
+            tasks.push(Task.call(function() : Nothing {
                 if (i == 10) {
                     throw error0;
                 } else if (i == 11) {
                     throw error1;
                 }
+
+                return null;
             }, new TimerExecutor(10 + i * 10)));
         }
 
@@ -464,26 +483,29 @@ class TaskTest {
             }
         }, 5000);
 
-        Task.whenAll(tasks).continueWith(function(t : Task<Void>) : Void {
+        Task.whenAll(tasks).continueWith(function(t : Task<Nothing>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
     @AsyncTest
     public function testWhenAllCancel(factory : AsyncFactory) : Void {
-        var task : Task<Void> = null;
-        var tasks = new Array<Task<Void>>();
+        var task : Task<Nothing> = null;
+        var tasks = new Array<Task<Nothing>>();
 
         for (i in 0 ... 20) {
-            var tcs = new TaskCompletionSource<Void>();
+            var tcs = new TaskCompletionSource<Nothing>();
 
-            Task.call(function() : Void {
+            Task.call(function() : Nothing {
                 if (i == 10) {
                     tcs.setCancelled();
                 } else {
                     tcs.setResult(null);
                 }
+
+                return null;
             }, new TimerExecutor(randomInt(10, 50)));
 
             tasks.push(tcs.task);
@@ -500,15 +522,16 @@ class TaskTest {
             }
         }, 5000);
 
-        Task.whenAll(tasks).continueWith(function(t : Task<Void>) : Void {
+        Task.whenAll(tasks).continueWith(function(t : Task<Nothing>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
     @Test
     public function testWhenAllResultNoTasks() : Void {
-        var task : Task<Array<Void>> = Task.whenAllResult(new Array<Task<Void>>());
+        var task : Task<Array<Nothing>> = Task.whenAllResult(new Array<Task<Nothing>>());
 
         Assert.isTrue(task.isCompleted);
         Assert.isFalse(task.isFaulted);
@@ -544,24 +567,26 @@ class TaskTest {
             }
         }, 5000);
 
-        Task.whenAllResult(tasks).continueWith(function(t : Task<Array<Int>>) : Void {
+        Task.whenAllResult(tasks).continueWith(function(t : Task<Array<Int>>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
     @AsyncTest
     public function testAsyncChaining(factory : AsyncFactory) : Void {
-        var task : Task<Void> = null;
+        var task : Task<Nothing> = null;
         var tasks = new Array<Task<Int>>();
 
         var sequence = new Array<Int>();
-        var result : Task<Void> = Task.forResult(null);
+        var result : Task<Nothing> = Task.forResult(null);
 
         for (i in 0 ... 20) {
-            result = result.continueWithTask(function(task : Task<Void>) : Task<Void> {
-                return Task.call(function() : Void {
+            result = result.continueWithTask(function(task : Task<Nothing>) : Task<Nothing> {
+                return Task.call(function() : Nothing {
                     sequence.push(i);
+                    return null;
                 }, new TimerExecutor(randomInt(10, 50)));
             });
         }
@@ -574,9 +599,10 @@ class TaskTest {
             }
         }, 5000);
 
-        result.continueWith(function(t : Task<Void>) : Void {
+        result.continueWith(function(t : Task<Nothing>) : Nothing {
             task = t;
             handler();
+            return null;
         });
     }
 
@@ -643,12 +669,13 @@ class TaskTest {
 
         Task.forResult(null).continueWhile(function() : Bool {
             return (count < 10);
-        }, function(task : Task<Void>) : Task<Void> {
+        }, function(task : Task<Nothing>) : Task<Nothing> {
             count++;
             return null;
-        }).continueWith(function(task : Task<Void>) : Void {
+        }).continueWith(function(task : Task<Nothing>) : Nothing {
             Assert.areEqual(10, count);
             handled = true;
+            return null;
         });
 
         Assert.isTrue(handled);
@@ -664,11 +691,12 @@ class TaskTest {
 
         Task.forResult(null).continueWhile(function() : Bool {
             return (count < 10);
-        }, function(task : Task<Void>) : Task<Void> {
+        }, function(task : Task<Nothing>) : Task<Nothing> {
             count++;
             return null;
-        }, new TimerExecutor(10)).continueWith(function(task : Task<Void>) : Void {
+        }, new TimerExecutor(10)).continueWith(function(task : Task<Nothing>) : Nothing {
             handler();
+            return null;
         });
     }
 

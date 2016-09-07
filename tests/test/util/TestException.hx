@@ -9,6 +9,6 @@
 package util;
 
 class TestException {
-    public function new() : Void {
+    public function new() {
     }
 }

@@ -28,7 +28,7 @@ class UiThreadTaskExecutor extends CurrentThreadTaskExecutor {
         private var tickTimer : Timer;
     #end
 
-    public function new() : Void {
+    public function new() {
         super();
 
         #if openfl

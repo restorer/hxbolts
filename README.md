@@ -99,7 +99,7 @@ Every `Task` has a method named `continueWith` which takes a continuation functi
 You can then inspect the task to check if it was successful and to get its result.
 
 ```haxe
-loadTextFromUrlAsync("http://domain.tld").continueWith(function(task : Task<String>) : Void {
+loadTextFromUrlAsync("http://domain.tld").continueWith(function(task : Task<String>) : Nothing {
     if (task.isCancelled) {
         // the load was cancelled.
         // NB. loadTextFromUrlAsync() mentioned earlier is used just for illustration,
@@ -111,6 +111,8 @@ loadTextFromUrlAsync("http://domain.tld").continueWith(function(task : Task<Stri
         // the text was loaded successfully.
         trace(task.result);
     }
+
+    return null;
 });
 ```
 
@@ -135,9 +137,10 @@ In many cases, you only want to do more work if the previous task was successful
 To do this, use the `onSuccess` method instead of `continueWith`.
 
 ```haxe
-loadTextFromUrlAsync("http://domain.tld").onSuccess(function(task : Task<String>) : Void {
+loadTextFromUrlAsync("http://domain.tld").onSuccess(function(task : Task<String>) : Nothing {
     // the text was loaded successfully.
     trace(task.result);
+    return null;
 });
 ```
 
@@ -157,8 +160,9 @@ loadTextFromUrlAsync("http://domain.tld").onSuccessTask(function(task : Task<Str
     return loadTextFromUrlAsync("http://anotherdomain.tld/index.php?ret=" + task.result.join("-"));
 }).onSuccessTask(function(task : Task<String>) : Task<CustomResultObject> {
     return storeAnotherResultOnServerAndReturnCustomResultObjectAsync(task.result);
-}).onSuccess(function(task : Task<CustomResultObject>) : Void {
+}).onSuccess(function(task : Task<CustomResultObject>) : Nothing {
     // Everything is done!
+    return null;
 });
 ```
 
@@ -187,9 +191,10 @@ loadTextFromUrlAsync("http://domain.tld").onSuccessTask(function(task : Task<Str
 
     // This will also be skipped.
     return storeAnotherResultOnServerAndReturnCustomResultObjectAsync(task.result);
-}).onSuccess(function(task : Task<CustomResultObject>) : Void {
+}).onSuccess(function(task : Task<CustomResultObject>) : Nothing {
     // Everything is done! This gets called.
     // The task's result is null.
+    return null;
 });
 ```
 
@@ -218,23 +223,25 @@ Tasks are convenient when you want to do a series of tasks in a row, each one wa
 For example, imagine you want to delete all of the comments on your blog.
 
 ```haxe
-findCommentsAsync({ post: 123 }).continueWithTask(function(resultTask : Task<Array<CommentInfo>>) : Task<Void> {
+findCommentsAsync({ post: 123 }).continueWithTask(function(resultTask : Task<Array<CommentInfo>>) : Task<Nothing> {
     // Create a trivial completed task as a base case.
-    var task : Task<Void> = Task.forResult(null);
+    var task : Task<Nothing> = Task.forResult(null);
 
     for (commentInfo in resultTask.result) {
         // For each item, extend the task with a function to delete the item.
-        task = task.continueWithTask(function(_) : Task<Void> {
+        task = task.continueWithTask(function(_) : Task<Nothing> {
             // Return a task that will be marked as completed when the delete is finished.
             return deleteCommentAsync(commentInfo);
         });
     }
 
     return task;
-}).continueWith(function(task : Task<Void>) : Void {
+}).continueWith(function(task : Task<Nothing>) : Nothing {
     if (task.isSuccessed) {
         // Every comment was deleted.
     }
+
+    return null;
 });
 ```
 
@@ -246,9 +253,9 @@ The new task will be successful only if all of the passed-in tasks succeed.
 Performing operations in parallel will be faster than doing them serially, but may consume more system resources and bandwidth.
 
 ```haxe
-findCommentsAsync({ post: 123 }).continueWithTask(function(resultTask : Task<Array<CommentInfo>>) : Task<Void> {
+findCommentsAsync({ post: 123 }).continueWithTask(function(resultTask : Task<Array<CommentInfo>>) : Task<Nothing> {
     // Collect one task for each delete into an array.
-    var tasks = new Array<Task<Void>>();
+    var tasks = new Array<Task<Nothing>>();
 
     for (commentInfo in resultTask.result) {
         // Start this delete immediately and add its task to the list.
@@ -256,9 +263,29 @@ findCommentsAsync({ post: 123 }).continueWithTask(function(resultTask : Task<Arr
     }
 
     return Task.whenAll(tasks);
-}).continueWith(function(task : Task<Void>) : Void {
+}).continueWith(function(task : Task<Nothing>) : Nothing {
     if (task.isSuccessed) {
         // Every comment was deleted.
     }
+
+    return null;
 });
 ```
+
+## enum Nothing
+
+Prior to Haxe 3.3 it was possible to use `Void` as return value (in reality, depending on target, it can be `null` or `undefined` or something else). **hxbolts** used this nice hack to have more clean code.
+
+Starting with Haxe 3.3 it is not possible to do this anymore - https://github.com/HaxeFoundation/haxe/issues/5519 (I agree with this decision). But we need some type for void-values:
+
+```haxe
+enum Nothing {
+    nothing;
+}
+```
+
+You can find void-types like that in other haxelibs (for example `Nil` in **thx.core**), but to reduce dependency on other libs **hxbolts** has it own void-type.
+
+This type can have only 2 values: `Nothing.nothing` and `null`. **hxbolts** ignore these values, so you can use anything you want. Internally `null` is used (just like original java library).
+
+P.S. Nice to have void-type in standard Haxe library.

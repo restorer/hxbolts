@@ -14,7 +14,7 @@ import massive.munit.client.SummaryReportClient;
 #end
 
 class TestMain {
-    public function new() : Void {
+    public function new() {
         var suites : Array<Class<massive.munit.TestSuite>> = [
             TestSuite
         ];
@@ -47,7 +47,7 @@ class TestMain {
         }
     }
 
-    public static function main() : Void{
+    public static function main() : Void {
         new TestMain();
     }
 }

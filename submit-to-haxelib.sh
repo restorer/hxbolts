@@ -7,6 +7,7 @@ pushd `dirname "$0"`
 [ -e tests/report ] && rm -r tests/report
 [ -e demos/01-basic/demo.swf ] && rm demos/01-basic/demo.swf
 [ -e demos/02-threads-openfl/export ] && rm -r demos/02-threads-openfl/export
+[ -e demos/03-lime/export ] && rm -r demos/03-lime/export
 
 zip -r -9 hxbolts.zip * -x submit-to-haxelib.sh
 
