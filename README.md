@@ -289,3 +289,21 @@ You can find void-types like that in other haxelibs (for example `Nil` in **thx.
 This type can have only 2 values: `Nothing.nothing` and `null`. **hxbolts** ignore these values, so you can use anything you want. Internally `null` is used (just like original java library).
 
 P.S. Nice to have void-type in standard Haxe library.
+
+## Product support
+
+Product still is in development (but not active).
+
+| Feature | Support status |
+|---|---|
+| New features | Yes |
+| Non-critical bugfixes | Yes |
+| Critical bugfixes | Yes |
+| Pull requests | Accepted (after review) |
+| Issues | Monitored |
+| Estimated end-of-life | Up to 2019 |
+
+## Roadmap for future
+
+[ ] Support for `CancellationToken`
+[ ] `@async` / `@await` on top of this library
