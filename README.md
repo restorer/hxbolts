@@ -305,5 +305,5 @@ Product still is in development (but not active).
 
 ## Roadmap for future
 
-[ ] Support for `CancellationToken`
-[ ] `@async` / `@await` on top of this library
+- [ ] Support for `CancellationToken`
+- [ ] `@async` / `@await` on top of this library
