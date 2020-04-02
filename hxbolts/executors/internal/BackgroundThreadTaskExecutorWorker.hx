@@ -8,7 +8,9 @@
  */
 package hxbolts.executors.internal;
 
-#if cpp
+#if (haxe_ver >= "4.0.0")
+    import sys.thread.Thread;
+#elseif cpp
     import cpp.vm.Thread;
 #elseif neko
     import neko.vm.Thread;
