@@ -278,7 +278,7 @@ class TaskTest {
         var task : Task<Task<Dynamic>> = null;
         var tasks = new Array<Task<Dynamic>>();
 
-        var firstToCompleteSuccess = Task.call(function() : String {
+        var firstToCompleteSuccess : Task<Dynamic> = Task.call(function() : String {
             return "SUCCESS";
         }, new TimerExecutor(50));
 
@@ -315,7 +315,7 @@ class TaskTest {
         var error = new TestException();
         var tasks = new Array<Task<Dynamic>>();
 
-        var firstToCompleteError = Task.call(function() : String {
+        var firstToCompleteError : Task<Dynamic> = Task.call(function() : String {
             throw error;
         }, new TimerExecutor(50));
 
@@ -351,7 +351,7 @@ class TaskTest {
         var task : Task<Task<Dynamic>> = null;
         var tasks = new Array<Task<Dynamic>>();
 
-        var firstToCompleteError = Task.call(function() : String {
+        var firstToCompleteError : Task<Dynamic> = Task.call(function() : String {
             throw new TaskCancellationException();
         }, new TimerExecutor(50));
 

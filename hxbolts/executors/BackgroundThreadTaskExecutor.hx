@@ -11,7 +11,7 @@ package hxbolts.executors;
 import hxbolts.executors.internal.BackgroundThreadTaskExecutorMessage;
 import hxbolts.executors.internal.BackgroundThreadTaskExecutorWorker;
 
-#if (haxe_ver >= "4.0.0")
+#if (haxe_ver >= "4.0.0" && (cpp || neko || java))
     import sys.thread.Mutex;
     import sys.thread.Thread;
 #elseif cpp

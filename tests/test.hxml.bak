@@ -40,5 +40,4 @@
 
 -cp test
 # -D HXCPP_M64
--D nostrip
 -cpp build/cpp_test

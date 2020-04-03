@@ -20,7 +20,10 @@ import massive.munit.util.Timer;
     import hxbolts.executors.CurrentThreadTaskExecutor;
 #end
 
-#if cpp
+#if (haxe_ver >= "4.0.0" && (cpp || neko || java))
+    import sys.thread.Mutex;
+    import sys.thread.Thread;
+#elseif cpp
     import cpp.vm.Mutex;
     import cpp.vm.Thread;
 #elseif neko
@@ -232,7 +235,7 @@ class TaskExecutorsTest {
     }
 
     private static inline function areThreadsEquals(t1 : Thread, t2 : Thread) : Bool {
-        #if (cpp && haxe_ver >= "3.3")
+        #if (cpp && haxe_ver >= "3.3" && have_ver < "4.0.0")
             return (t1.handle == t2.handle);
         #else
             return (t1 == t2);

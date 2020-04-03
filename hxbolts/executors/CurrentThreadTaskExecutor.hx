@@ -8,7 +8,7 @@
  */
 package hxbolts.executors;
 
-#if (haxe_ver >= "4.0.0")
+#if (haxe_ver >= "4.0.0" && (cpp || neko || java))
     import sys.thread.Mutex;
 #elseif cpp
     import cpp.vm.Mutex;
