@@ -4,10 +4,17 @@ import haxe.Timer;
 import hxbolts.Nothing;
 import hxbolts.Task;
 import hxbolts.executors.Executors;
-import lime.Assets;
 import lime.app.Application;
 import lime.graphics.Image;
-import lime.graphics.Renderer;
+
+#if (lime >= "7.0")
+    import lime.utils.Assets;
+    import lime.graphics.RenderContext;
+    import lime.graphics.RenderContextType;
+#else
+    import lime.Assets;
+    import lime.graphics.Renderer;
+#end
 
 #if flash
     import flash.display.Bitmap;
@@ -21,10 +28,16 @@ import lime.graphics.Renderer;
     import lime.math.Matrix4;
     import lime.math.Vector4;
     import lime.utils.Float32Array;
-    import lime.utils.GLUtils;
+
+    #if (lime < "7.0")
+        import lime.utils.GLUtils;
+    #end
 #end
 
-#if cpp
+#if (haxe_ver >= "4.0.0" && (cpp || neko || java))
+    import sys.thread.Mutex;
+    import sys.thread.Thread;
+#elseif cpp
     import cpp.vm.Thread;
 #elseif neko
     import neko.vm.Thread;
@@ -33,7 +46,7 @@ import lime.graphics.Renderer;
 #end
 
 class App extends Application {
-    private var startTime : Float;
+    private var startTime : Float = -1.0;
     private var image : Image = null;
 
     #if flash
@@ -79,14 +92,18 @@ class App extends Application {
         computeNextPrime();
     }
 
-    public override function render(renderer : Renderer) : Void {
+    public override function render(#if (lime >= "7.0") context : RenderContext #else renderer : Renderer #end) : Void {
         if (image == null && preloader.complete) {
             image = Assets.getImage("assets/logo.png");
             startTime = Timer.stamp();
 
-            switch (renderer.context) {
+            switch (#if (lime >= "7.0") context.type #else renderer.context #end) {
                 #if flash
-                    case FLASH(sprite):
+                    #if (lime >= "7.0")
+                        case FLASH: var sprite = context.flash;
+                    #else
+                        case FLASH(sprite):
+                    #end
                         logoSprite = new Sprite();
                         sprite.addChild(logoSprite);
 
@@ -95,7 +112,11 @@ class App extends Application {
                         logoBitmap.y = - image.height / 2.0;
                         logoSprite.addChild(logoBitmap);
                 #else
-                    case OPENGL(gl):
+                    #if (lime >= "7.0")
+                        case OPENGL, OPENGLES, WEBGL: var gl = context.webgl;
+                    #else
+                        case OPENGL(gl):
+                    #end
                         var vertexShaderSource = "
                             varying vec2 vTexCoord;
                             attribute vec4 aPosition;
@@ -117,7 +138,12 @@ class App extends Application {
                             }
                         ";
 
-                        program = GLUtils.createProgram(vertexShaderSource, fragmentShaderSource);
+                        #if (lime >= "7.0")
+                            program = GLProgram.fromSources(gl, vertexShaderSource, fragmentShaderSource);
+                        #else
+                            program = GLUtils.createProgram(vertexShaderSource, fragmentShaderSource);
+                        #end
+
                         gl.useProgram(program);
 
                         vertexAttributeLocation = gl.getAttribLocation(program, "aPosition");
@@ -168,28 +194,50 @@ class App extends Application {
                 #end
 
                 default:
-                    throw 'Unsupported context: ${Type.enumConstructor(renderer.context)}';
+                    #if (lime >= "7.0")
+                        throw 'Unsupported context: ${context.type}';
+                    #else
+                        throw 'Unsupported context: ${Type.enumConstructor(renderer.context)}';
+                    #end
             }
+        }
+
+        if (startTime < 0.0) {
+            return;
         }
 
         var currentTime = Timer.stamp() - startTime;
 
-        switch (renderer.context) {
+        switch (#if (lime >= "7.0") context.type #else renderer.context #end) {
             #if flash
-                case FLASH(sprite):
+                #if (lime >= "7.0")
+                    case FLASH: var sprite = context.flash;
+                #else
+                    case FLASH(sprite):
+                #end
                     logoSprite.x = sprite.stage.stageWidth / 2.0;
                     logoSprite.y = sprite.stage.stageHeight / 2.0;
                     logoSprite.rotation = currentTime / Math.PI * 360.0;
 
             #else
-                case OPENGL(gl):
+                #if (lime >= "7.0")
+                    case OPENGL, OPENGLES, WEBGL: var gl = context.webgl;
+                #else
+                    case OPENGL(gl):
+                #end
                     gl.viewport(0, 0, window.width, window.height);
 
                     gl.clearColor(1.0, 1.0, 1.0, 1.0);
                     gl.clear(gl.COLOR_BUFFER_BIT);
                     gl.disable(gl.CULL_FACE);
 
-                    var matrix = Matrix4.createOrtho(0.0, window.width, window.height, 0.0, 0.0, 1000.0);
+                    #if (lime >= "7.0")
+                        var matrix = new Matrix4();
+                        matrix.createOrtho(0.0, window.width, window.height, 0.0, 0.0, 1000.0);
+                    #else
+                        var matrix = Matrix4.createOrtho(0.0, window.width, window.height, 0.0, 0.0, 1000.0);
+                    #end
+
                     matrix.prependTranslation(window.width / 2.0, window.height / 2.0, 0.0);
                     matrix.prependRotation(currentTime / Math.PI * 360.0, Vector4.Z_AXIS);
 
@@ -222,7 +270,11 @@ class App extends Application {
             #end
 
             default:
-                throw 'Unsupported context: ${Type.enumConstructor(renderer.context)}';
+                #if (lime >= "7.0")
+                    throw 'Unsupported context: ${context.type}';
+                #else
+                    throw 'Unsupported context: ${Type.enumConstructor(renderer.context)}';
+                #end
         }
     }
 
@@ -309,7 +361,7 @@ class App extends Application {
 
     #if (cpp || neko || java)
         private static inline function areThreadsEquals(t1 : Thread, t2 : Thread) : Bool {
-            #if (cpp && haxe_ver >= "3.3")
+            #if (cpp && haxe_ver >= "3.3" && have_ver < "4.0.0")
                 return (t1.handle == t2.handle);
             #else
                 return (t1 == t2);
